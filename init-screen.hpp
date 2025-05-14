@@ -5,7 +5,7 @@
 
 void initScreen() {
   for (uint8_t index = 30; index < 60; index++) {
-    tft.setTextColor(UI_Text + (index >> 1) << 11);
+    tft.setTextColor(0x07ff + (index << 11));
     tft.setTextSize(8);
     tft.setCursor(index, index);
     tft.println("MW");
