@@ -21,7 +21,7 @@ void setup() {
   tft.setTextSize(2);  // 2× scale
   tft.println();
   tft.println(" Hello");
-  tft.setTextColor(0x0343);
+  tft.setTextColor(0x07e6);
 }
 
 void loop() {
