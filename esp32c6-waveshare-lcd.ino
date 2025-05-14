@@ -10,24 +10,23 @@ void setup() {
   // Initialize display, width=172, height=320
   tft.init(172, 320);
   tft.setRotation(2);  // match your orientation
-  tft.fillScreen(ST77XX_WHITE);
+  tft.fillScreen(0xdfbb);
 
   // backlight on
   ledcAttach(TFT_BL, 1000, 10);
   ledcWrite(TFT_BL, 255);
 
   // draw some text
-  tft.setTextColor(ST77XX_BLACK);
+  tft.setTextColor(0x00c1);
   tft.setTextSize(2);  // 2× scale
-  tft.setCursor(10, 10);
-  tft.println("Hello");
-  tft.setCursor(10, 40);
-  tft.setTextColor(ST77XX_BLUE);
+  tft.println();
+  tft.println(" Hello");
+  tft.setTextColor(0x0343);
 }
 
 void loop() {
   if (digitalRead(BUTTON) == HIGH) {
-    tft.println("Click");
+    tft.println(" Click");
     delay(300);
   }
 }
