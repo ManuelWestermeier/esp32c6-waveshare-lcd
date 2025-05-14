@@ -28,7 +28,7 @@ void setup() {
   tft.setTextColor(ST77XX_WHITE);
   tft.setTextSize(2);                // 2× scale
   tft.setCursor(10, 10);
-  tft.println("Hello, ESP32C6!");
+  tft.println("Hello, Niggas!");
   tft.setCursor(10, 40);
   tft.setTextColor(ST77XX_RED);
   tft.println("ST7789 + GFX");
