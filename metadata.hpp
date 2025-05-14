@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Arduino.h>
 
 #define TFT_MOSI   6

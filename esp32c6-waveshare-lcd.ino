@@ -1,32 +1,31 @@
 #include "metadata.hpp"
-
-#define BUTTON 1
+#include "input.hpp"
+#include "init.hpp"
 
 void setup() {
-  pinMode(BUTTON, INPUT_PULLDOWN);
-  // SPI init (optional—Adafruit does it for you)
-  SPI.begin(TFT_SCLK, /*MISO*/ -1, TFT_MOSI);
-
-  // Initialize display, width=172, height=320
-  tft.init(172, 320);
-  tft.setRotation(2);  // match your orientation
-  tft.fillScreen(0xdfbb);
-
-  // backlight on
-  ledcAttach(TFT_BL, 1000, 10);
-  ledcWrite(TFT_BL, 255);
-
-  // draw some text
-  tft.setTextColor(0x00c1);
-  tft.setTextSize(2);  // 2× scale
+  init();
+  Input::start();
+  
   tft.println();
-  tft.println(" Hello");
-  tft.setTextColor(0x02e2);
+  tft.println(" Start");
+  tft.setTextColor(0x051f);
 }
 
 void loop() {
-  if (digitalRead(BUTTON) == HIGH) {
-    tft.println(" Click");
+  auto lastEvent = Input::getLastEvent();
+  if (lastEvent != Input::None) {
+    if(lastEvent == Input::Click) {
+      tft.println(" Click");
+    }
+    if(lastEvent == Input::LongPress) {
+      tft.println(" LongPress");
+    }
+    if(lastEvent == Input::DoubleClick) {
+      tft.println(" DoubleClick");
+    }
+    if(lastEvent == Input::TripleClick) {
+      tft.println(" TripleClick");
+    }
     delay(300);
   }
 }
