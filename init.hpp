@@ -10,7 +10,7 @@ void init() {
 
   // Initialize display, width=172, height=320
   tft.init(172, 320);
-  tft.setRotation(2);  // match your orientation
+  tft.setRotation(2);  // vertical
   tft.fillScreen(UI_BG);
 
   // backlight on
