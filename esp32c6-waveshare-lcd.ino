@@ -5,7 +5,7 @@ void setup()
   LCD_Init();
   LCD_SetCursor(10, 10, 50, 50);
   Backlight_Init();
-  Set_Backlight(100);
+  Set_Backlight(10);
 }
 
 void loop()
