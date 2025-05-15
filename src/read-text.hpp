@@ -7,7 +7,7 @@
 
 // Simple instructions: Click=←, Double=→, Triple=↑, Long=Select
 static const char* keyboardDesc =
-  "Click=Left  Double=Right  Triple=Up  Long=Select";
+  "Click=Right Double=Up Triple=Down Long=Select";
 
 // 42 Labels (letters, digits, Backspace '<', OK)
 static const String keyLabels[] = {
@@ -162,12 +162,12 @@ inline String readText(const String& placeholder = "") {
   }
 
   tft.fillScreen(UI_BG);
-  tft.setCursor(10, 10);
+  tft.setCursor(20, 20);
 
   auto text = kb.getText();
   tft.println(text);
 
-  delay(1000);
+  delay(1500);
   tft.fillScreen(UI_BG);
 
   return text;

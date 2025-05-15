@@ -17,10 +17,5 @@ void setup() {
 #include "src/read-text.hpp"
 
 void loop() {
-  tft.setCursor(20, 20);
-  tft.println(readText("Hello"));
-
-  delay(1000);
-  tft.fillScreen(UI_BG);
-  delay(1000);
+  readText("Hello");
 }
