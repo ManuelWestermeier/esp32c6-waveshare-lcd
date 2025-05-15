@@ -58,7 +58,7 @@ public:
   }
 
   void drawAll() {
-    // background
+    // background for keyboard
     tft.fillRect(x, y, w, h, UI_BG);
     for (int i = 0; i < cols * rows; i++) {
       drawKey(i);
@@ -68,13 +68,13 @@ public:
   void navigate(Input::Event ev) {
     switch (ev) {
       case Input::Click:  // left
-        cursor = (cursor % cols == 0) ? cursor + cols - 1 : cursor - 1;
-        break;
-      case Input::DoubleClick:  // right
         cursor = (cursor % cols == cols - 1) ? cursor - (cols - 1) : cursor + 1;
         break;
+      case Input::DoubleClick:  // right
+        cursor = (cursor % cols == 0) ? cursor + cols - 1 : cursor - 1;
+        break;
       case Input::TripleClick:  // up
-        cursor = (cursor < cols) ? cursor + cols * (rows - 1) : cursor - cols;
+        cursor = (cursor > cols) ? cursor + cols * (rows + 1) : cursor + cols;
         break;
       default:
         break;
@@ -119,41 +119,43 @@ inline String readText(const String& placeholder = "") {
   const int W = tft.width();
   const int H = tft.height();
   const int headerH = 30;
+  const int keyboardH = H * 0.6;  // 60% of screen height for keyboard
 
-  // draw header + placeholder
-  tft.fillRect(0, 0, W, headerH, UI_BG);
-  tft.setCursor(5, 5);
-  tft.setTextSize(1);
-  tft.setTextColor(UI_Text);
-  tft.print(keyboardDesc);
-  tft.setCursor(5, 18);
-  tft.setTextSize(2);
-  tft.print(placeholder);
+  // Draw header and input area
+  auto drawHeader = [&](const String& currentText) {
+    // Description line
+    tft.fillRect(0, 0, W, headerH, UI_BG);
+    tft.setCursor(5, 5);
+    tft.setTextSize(1);
+    tft.setTextColor(UI_Text);
+    tft.print(keyboardDesc);
+    // Input text area
+    int textAreaY = headerH;
+    int textAreaH = H - keyboardH - headerH;
+    tft.fillRect(0, textAreaY, W, textAreaH, UI_BG);
+    tft.setCursor(5, textAreaY + 5);
+    tft.setTextSize(2);
+    tft.setTextColor(UI_Text);
+    tft.print(currentText);
+  };
 
-  OnScreenKeyboard kb(0, headerH, W, H - headerH, 5);
+  OnScreenKeyboard kb(0, H - keyboardH, W, keyboardH, 4);
   kb.setText(placeholder);
+  drawHeader(placeholder);
   kb.drawAll();
 
   while (!kb.isDone()) {
     Input::Event ev = Input::getLastEvent();
     if (ev == Input::Click || ev == Input::DoubleClick || ev == Input::TripleClick) {
-      // navigate and redraw moved keys
-      int prev = kb.getText().length();       // not used in drawing
-      int oldCursor = kb.getText().length();  // placeholder
       kb.navigate(ev);
       kb.drawAll();
     } else if (ev == Input::LongPress) {
       kb.selectKey();
-      // redraw entire area: header, text, keyboard
-      tft.fillRect(0, 0, W, headerH, UI_BG);
-      tft.setCursor(5, 5);
-      tft.print(keyboardDesc);
-      tft.setCursor(5, 18);
-      tft.setTextSize(2);
-      tft.print(kb.getText());
+      drawHeader(kb.getText());
       kb.drawAll();
     }
     delay(100);
   }
+
   return kb.getText();
 }
