@@ -37,4 +37,5 @@ void initScreen() {
 
   tft.fillScreen(UI_BG);
   tft.setTextColor(UI_Text);
+  tft.setTextSize(2);
 }

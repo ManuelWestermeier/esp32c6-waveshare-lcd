@@ -135,7 +135,7 @@ static inline void stop() {
 }
 
 // Retrieve and clear the last event
-static inline Event getLastEvent() {
+Event getLastEvent() {
   Event e;
   portENTER_CRITICAL(&mux);
   e = lastEvent;
