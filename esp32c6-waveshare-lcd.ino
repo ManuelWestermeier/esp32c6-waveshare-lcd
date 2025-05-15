@@ -6,8 +6,7 @@
 
 #define USE_INIT_SCREEN true
 
-void setup()
-{
+void setup() {
   init();
   Input::start();
 #if USE_INIT_SCREEN
@@ -15,6 +14,5 @@ void setup()
 #endif
 }
 
-void loop()
-{
+void loop() {
 }

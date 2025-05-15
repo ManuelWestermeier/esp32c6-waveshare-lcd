@@ -2,15 +2,18 @@
 
 #include "metadata.hpp"
 #include "colors.hpp"
+#include "rgb-led.hpp"
 
-void init() {
+void init()
+{
   pinMode(BUTTON, INPUT_PULLDOWN);
+  pixels.begin();
   // SPI init (optional—Adafruit does it for you)
   SPI.begin(TFT_SCLK, /*MISO*/ -1, TFT_MOSI);
 
   // Initialize display, width=172, height=320
   tft.init(172, 320);
-  tft.setRotation(2);  // vertical
+  tft.setRotation(2); // vertical
   tft.fillScreen(UI_BG);
 
   // backlight on
@@ -19,5 +22,5 @@ void init() {
 
   // text style
   tft.setTextColor(UI_Text);
-  tft.setTextSize(2);  // 2× scale
+  tft.setTextSize(2); // 2× scale
 }
