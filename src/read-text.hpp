@@ -6,7 +6,7 @@
 #include "colors.hpp"
 
 // Simple instructions: Click=←, Double=→, Triple=↑, Long=Select
-static const char* keyboardDesc = "Click=Right Double=Up\nTriple=Down Long=Select";
+static const char* keyboardDesc = " Click=Right Double=Up\n^   Triple=Down Long=Select";
 
 // 42 Labels (letters, digits, Backspace '<', OK)
 static const String keyLabels[] = {
