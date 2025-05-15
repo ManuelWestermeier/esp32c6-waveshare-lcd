@@ -1,10 +1,20 @@
 #pragma once
 #include <Arduino.h>
-
-#define BUTTON 1
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 namespace Input {
 
+// Pin definition (change as needed)
+#ifndef BUTTON_PIN
+#define BUTTON_PIN 1
+#endif
+
+#ifndef BUTTON
+#define BUTTON BUTTON_PIN
+#endif
+
+// Button event types
 enum Event {
   None,
   Click,
@@ -13,71 +23,95 @@ enum Event {
   LongPress
 };
 
-namespace {
-volatile Event lastEvent = None;
-volatile bool running = false;
-TaskHandle_t inputTaskHandle = nullptr;
+// Task and synchronization
+static TaskHandle_t inputTaskHandle = nullptr;
+static volatile bool running = false;
+static portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
 
-// Settings
-const unsigned long clickThreshold = 200;      // ms
-const unsigned long longPressThreshold = 800;  // ms
-const unsigned long multiClickTimeout = 500;   // ms
+// Last event storage (protected by portMUX)
+static volatile Event lastEvent = None;
 
-void inputTask(void*) {
-  pinMode(BUTTON, INPUT_PULLDOWN);
+// Timing thresholds (ms)
+static const uint32_t clickThreshold = 200;
+static const uint32_t longPressThreshold = 800;
+static const uint32_t multiClickTimeout = 500;
 
-  int clickCount = 0;
-  unsigned long pressStart = 0;
+// Post an event in a thread-safe manner
+static inline void postEvent(Event e) {
+  portENTER_CRITICAL(&mux);
+  lastEvent = e;
+  portEXIT_CRITICAL(&mux);
+}
+
+// Task: polls button and detects events via a simple FSM
+static void inputTask(void*) {
+  pinMode(BUTTON_PIN, INPUT_PULLDOWN);
+
   bool wasPressed = false;
+  uint32_t pressStart = 0;
+  uint32_t lastChangeTime = 0;
+  uint8_t clickCount = 0;
+  enum { STATE_IDLE,
+         STATE_PRESSED,
+         STATE_WAIT } state = STATE_IDLE;
 
   while (running) {
-    bool isPressed = digitalRead(BUTTON) == HIGH;
-    unsigned long now = millis();
+    bool isPressed = digitalRead(BUTTON_PIN) == HIGH;
+    uint32_t now = millis();
 
-    if (isPressed && !wasPressed) {
-      // Button just pressed
-      pressStart = now;
-    }
+    switch (state) {
+      case STATE_IDLE:
+        if (isPressed) {
+          pressStart = now;
+          state = STATE_PRESSED;
+        }
+        break;
 
-    if (!isPressed && wasPressed) {
-      // Button just released
-      unsigned long pressDuration = now - pressStart;
-
-      if (pressDuration >= longPressThreshold) {
-        lastEvent = LongPress;
-        clickCount = 0;
-      } else {
-        clickCount++;
-        unsigned long firstClickTime = now;
-
-        // wait for more clicks
-        while (millis() - firstClickTime < multiClickTimeout) {
-          if (digitalRead(BUTTON) == HIGH) {
-            while (digitalRead(BUTTON) == HIGH) delay(10);  // debounce
+      case STATE_PRESSED:
+        if (!isPressed) {
+          uint32_t duration = now - pressStart;
+          if (duration >= longPressThreshold) {
+            postEvent(LongPress);
+            clickCount = 0;
+            state = STATE_IDLE;
+          } else {
+            // Short press -> potential click
             clickCount++;
+            lastChangeTime = now;
+            state = STATE_WAIT;
           }
-          delay(10);
         }
+        break;
 
-        switch (clickCount) {
-          case 1: lastEvent = Click; break;
-          case 2: lastEvent = DoubleClick; break;
-          case 3: lastEvent = TripleClick; break;
-          default: lastEvent = None; break;
+      case STATE_WAIT:
+        // If a new press occurs within timeout, handle next click
+        if (isPressed && (now - lastChangeTime) > clickThreshold) {
+          pressStart = now;
+          state = STATE_PRESSED;
         }
-        clickCount = 0;
-      }
+        // If no further press, timeout expired -> finalize click count
+        else if (!isPressed && (now - lastChangeTime) >= multiClickTimeout) {
+          switch (clickCount) {
+            case 1: postEvent(Click); break;
+            case 2: postEvent(DoubleClick); break;
+            case 3: postEvent(TripleClick); break;
+            default: postEvent(None); break;
+          }
+          clickCount = 0;
+          state = STATE_IDLE;
+        }
+        break;
     }
 
     wasPressed = isPressed;
-    delay(10);
+    vTaskDelay(pdMS_TO_TICKS(10));
   }
 
   vTaskDelete(nullptr);
 }
-}
 
-void start() {
+// Start the input task
+static inline void start() {
   if (!running) {
     running = true;
     xTaskCreatePinnedToCore(
@@ -87,21 +121,27 @@ void start() {
       nullptr,
       1,
       &inputTaskHandle,
-      1);
+      tskNO_AFFINITY);
   }
 }
 
-void stop() {
+// Stop the input task
+static inline void stop() {
   if (running && inputTaskHandle != nullptr) {
     running = false;
+    vTaskDelete(inputTaskHandle);
     inputTaskHandle = nullptr;
   }
 }
 
-Event getLastEvent() {
-  Event e = lastEvent;
+// Retrieve and clear the last event
+static inline Event getLastEvent() {
+  Event e;
+  portENTER_CRITICAL(&mux);
+  e = lastEvent;
   lastEvent = None;
+  portEXIT_CRITICAL(&mux);
   return e;
 }
 
-};
+}  // namespace Input
