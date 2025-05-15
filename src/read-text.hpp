@@ -1,58 +1,97 @@
 #pragma once
-
 #include <Arduino.h>
-#include "metadata.hpp"
+#include <Adafruit_GFX.h>
+#include <Adafruit_ST7789.h>
 #include "input.hpp"
 #include "colors.hpp"
 
-// A simple on-screen QWERTY keyboard for TFT display
+// 4×10 keys, last two are Backspace and OK
+static const String keyLabels[] = {
+  "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P",
+  "A", "S", "D", "F", "G", "H", "J", "K", "L", ";",
+  "Z", "X", "C", "V", "B", "N", "M", ",", ".", "?",
+  "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
+  "<", "OK", "", "", "", "", "", "", "", ""
+};
+
 class OnScreenKeyboard {
 public:
-  OnScreenKeyboard(TFT_eSPI& display, int x, int y, int w, int h)
-    : tft(display), originX(x), originY(y), width(w), height(h) {
-    initLayout();
-    cursorPos = { 0, 0 };
+  OnScreenKeyboard(int x, int y, int w, int h)
+    : x(x), y(y), w(w), h(h), cursor(0), upper(false) {
+    keyW = w / cols;
+    keyH = h / rows;
   }
 
-  // draw the keyboard grid
+  void setText(const String& s) {
+    text = s;
+  }
+
   void draw() {
-    tft.fillRect(originX, originY, width, height, COLOR_BG);
-    int keyW = width / cols;
-    int keyH = height / rows;
+    // keyboard bg
+    tft.fillRect(x, y, w, h, UI_BG);
+
     for (int r = 0; r < rows; ++r) {
       for (int c = 0; c < cols; ++c) {
         int idx = r * cols + c;
-        if (idx >= (int)keys.size()) continue;
-        int x = originX + c * keyW;
-        int y = originY + r * keyH;
-        uint16_t keyColor = (cursorPos.first == r && cursorPos.second == c) ? COLOR_HIGHLIGHT : COLOR_KEYBG;
-        tft.fillRect(x, y, keyW, keyH, keyColor);
-        tft.drawRect(x, y, keyW, keyH, COLOR_BORDER);
-        tft.setTextColor(COLOR_TEXT);
-        tft.setTextDatum(MC_DATUM);
-        tft.drawString(keys[idx], x + keyW / 2, y + keyH / 2);
+        if (idx >= sizeof(keyLabels)) break;
+
+        int px = x + c * keyW;
+        int py = y + r * keyH;
+        bool sel = (idx == cursor);
+
+        // key box
+        tft.fillRect(px + 1, py + 1, keyW - 2, keyH - 2, sel ? UI_Primary : UI_Secondary);
+        tft.drawRect(px + 1, py + 1, keyW - 2, keyH - 2, UI_Text);
+
+        // label
+        String L = keyLabels[idx];
+        if (L.length()) {
+          char ch = L.charAt(0);
+          // if "OK" or "<", use as‐is
+          if (L == "OK" || L == "<") {
+            tft.setCursor(px + 4, py + keyH / 2 - 6);
+            tft.setTextSize(1);
+            tft.setTextColor(UI_Text);
+            tft.print(L);
+          } else {
+            // single‐char letter/digit
+            char disp = upper && isAlpha(ch) ? char(toupper(ch)) : char(tolower(ch));
+            tft.setCursor(px + (keyW / 2) - 4, py + (keyH / 2) - 6);
+            tft.setTextSize(1);
+            tft.setTextColor(UI_Text);
+            tft.print(disp);
+          }
+        }
       }
     }
   }
 
-  // move cursor based on event
+  // Map the 4 gestures to cursor movement:
+  //   Click → right
+  //   DoubleClick → down
+  //   TripleClick → left
+  //   LongPress → up
   void navigate(Input::Event ev) {
-    switch (ev) {
-      case Input::Click:
-        selectKey();
-        break;
-      case Input::DoubleClick:
-        backspace();
-        break;
-      case Input::LongPress:
-        // accept / finish editing, signal by setting done flag
-        done = true;
-        break;
-      case Input::TrippleClick:  // cycle through uppercase/lowercase
-        toggleCase();
-        break;
-      default:
-        break;
+    if (ev == Input::Click && cursor % cols < cols - 1) ++cursor;
+    else if (ev == Input::DoubleClick && cursor / cols < rows - 1) cursor += cols;
+    else if (ev == Input::TripleClick && cursor % cols > 0) --cursor;
+    else if (ev == Input::LongPress && cursor / cols > 0) cursor -= cols;
+
+    // bounds
+    if (cursor < 0) cursor = 0;
+    if (cursor >= cols * rows) cursor = cols * rows - 1;
+  }
+
+  // Called when user wants to *select* the current key:
+  void selectKey() {
+    String L = keyLabels[cursor];
+    if (L == "<") {
+      if (text.length()) text.remove(text.length() - 1);
+    } else if (L == "OK") {
+      done = true;
+    } else if (L.length()) {
+      char ch = L.charAt(0);
+      text += (upper && isAlpha(ch)) ? char(toupper(ch)) : char(tolower(ch));
     }
   }
 
@@ -60,80 +99,63 @@ public:
     return done;
   }
   String getText() const {
-    return textBuffer;
+    return text;
   }
 
-protected:
-  TFT_eSPI& tft;
-  int originX, originY, width, height;
-  const int rows = 4;
-  const int cols = 10;
-  std::vector<String> keys;
-  std::pair<int, int> cursorPos;
+private:
+  static constexpr int cols = 10;
+  static constexpr int rows = 4;
 
-  String textBuffer;
+  int x, y, w, h;
+  int keyW, keyH;
+  int cursor;
+  bool upper;
   bool done = false;
-  bool upper = false;
-
-  void initLayout() {
-    // QWERTY layout plus space and symbols
-    String row0 = "QWERTYUIOP";
-    String row1 = "ASDFGHJKL";
-    String row2 = "ZXCVBNM,.;";
-    // fill into keys
-    for (char c : row0) keys.push_back(String(c));
-    for (char c : row1) keys.push_back(String(c));
-    keys.push_back("<");  // backspace symbol
-    for (char c : row2) keys.push_back(String(c));
-    keys.push_back(" ");  // space
-    keys.push_back("OK");
-  }
-
-  void selectKey() {
-    int idx = cursorPos.first * cols + cursorPos.second;
-    if (idx < 0 || idx >= (int)keys.size()) return;
-    String k = keys[idx];
-    if (k == "<") backspace();
-    else if (k == "OK") done = true;
-    else textBuffer += (upper ? k : k.toLowerCase());
-  }
-
-  void backspace() {
-    if (textBuffer.length() > 0) textBuffer.remove(textBuffer.length() - 1);
-  }
-
-  void toggleCase() {
-    upper = !upper;
-    // update displayed keys to match case
-    for (auto& k : keys) {
-      if (k.length() == 1 && isAlpha(k.charAt(0))) {
-        k = upper ? k.toUpperCase() : k.toLowerCase();
-      }
-    }
-  }
+  String text;
 
   bool isAlpha(char c) {
-    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
   }
 };
 
-// blocking text read using on-screen keyboard
-String readText(String placeholder = "") {
-  OnScreenKeyboard keyboard(tft, 0, tft.height() / 2, tft.width(), tft.height() / 2);
-  keyboard.textBuffer = placeholder;
-  keyboard.draw();
 
-  while (!keyboard.isDone()) {
-    auto ev = Input::getLastEvent();
-    if (ev != Input::None) {
-      keyboard.navigate(ev);
-      tft.fillRect(0, 0, tft.width(), tft.height() / 2, COLOR_BG);
-      tft.setCursor(0, 0);
-      tft.setTextColor(COLOR_TEXT);
-      tft.print(keyboard.getText());
-      keyboard.draw();
-      delay(100);  // debounce
+// ——— Blocking read ———
+// placeholder drawn as initial text; keyboard uses the global `tft`.
+inline String readText(const String& placeholder = "") {
+  const int W = tft.width(), H = tft.height();
+  const int topH = H / 2;
+
+  // draw placeholder
+  tft.fillRect(0, 0, W, topH, UI_BG);
+  tft.setCursor(0, 0);
+  tft.setTextColor(UI_Text);
+  tft.setTextSize(2);
+  tft.print(placeholder);
+
+  OnScreenKeyboard kb(0, topH, W, H - topH);
+  kb.setText(placeholder);
+  kb.draw();
+
+  while (!kb.isDone()) {
+    Input::Event ev = Input::getLastEvent();
+
+    if (ev == Input::Click || ev == Input::DoubleClick || ev == Input::TripleClick || ev == Input::LongPress) {
+      // first navigation
+      kb.navigate(ev);
+
+      // hold *another* DoubleClick as "select"
+      if (ev == Input::DoubleClick) {
+        kb.selectKey();
+      }
     }
+
+    // update display
+    tft.fillRect(0, 0, W, topH, UI_BG);
+    tft.setCursor(0, 0);
+    tft.print(kb.getText());
+    kb.draw();
+    delay(100);
   }
-  return keyboard.getText();
+
+  return kb.getText();
 }
