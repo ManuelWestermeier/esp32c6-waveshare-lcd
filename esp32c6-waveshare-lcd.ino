@@ -6,9 +6,8 @@
 
 void setup() {
   init();
-  initScreen();
-  // return;
   Input::start();
+  initScreen();
 }
 
 void loop() {
