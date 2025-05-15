@@ -1,3 +1,3 @@
 # WAVESHARE TEST
 
-ESP32
+ESP32C6 Dev Module

@@ -4,7 +4,7 @@
 #include "init.hpp"
 #include "init-screen.hpp"
 
-#define USE_INIT_SCREEN false
+#define USE_INIT_SCREEN true
 
 void setup() {
   init();
