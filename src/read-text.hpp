@@ -6,8 +6,7 @@
 #include "colors.hpp"
 
 // Simple instructions: Click=←, Double=→, Triple=↑, Long=Select
-static const char* keyboardDesc =
-  "Click=Right Double=Up Triple=Down Long=Select";
+static const char* keyboardDesc = "Click=Right Double=Up\nTriple=Down Long=Select";
 
 // 42 Labels (letters, digits, Backspace '<', OK)
 static const String keyLabels[] = {
@@ -165,6 +164,8 @@ inline String readText(const String& placeholder = "") {
   tft.setCursor(20, 20);
 
   auto text = kb.getText();
+  
+  tft.setTextSize(2);
   tft.println(text);
 
   delay(1500);
