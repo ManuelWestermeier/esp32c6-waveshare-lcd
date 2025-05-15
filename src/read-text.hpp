@@ -22,8 +22,10 @@ class OnScreenKeyboard {
 public:
   OnScreenKeyboard(int x, int y, int w, int h, int pad = 5)
     : x(x + pad), y(y + pad), w(w - 2 * pad), h(h - 2 * pad), cursor(0), done(false) {
-    keyW = w / cols;
-    keyH = h / rows;
+    // keyW = w / (cols + 2);
+    // keyH = h / (rows + 2);
+    keyW = 15;
+    keyH = 20;
   }
 
   void setText(const String& s) {
@@ -38,8 +40,7 @@ public:
     int py = y + r * keyH;
     bool sel = (idx == cursor);
     // key box
-    tft.fillRect(px + 1, py + 1, keyW - 2, keyH - 2, sel ? UI_Primary : UI_Secondary);
-    tft.drawRect(px + 1, py + 1, keyW - 2, keyH - 2, UI_Text);
+    tft.fillRect(px + 1, py + 1, keyW - 2, keyH - 2, sel ? UI_Secondary : UI_BG);
     // label
     String L = keyLabels[idx];
     if (L.length() > 0) {
@@ -70,10 +71,7 @@ public:
       case Input::Click:  // left
         cursor = (cursor % cols == cols - 1) ? cursor - (cols - 1) : cursor + 1;
         break;
-      case Input::DoubleClick:  // right
-        cursor = (cursor % cols == 0) ? cursor + cols - 1 : cursor - 1;
-        break;
-      case Input::TripleClick:  // up
+      case Input::DoubleClick:  // up
         cursor = (cursor > cols) ? cursor + cols * (rows + 1) : cursor + cols;
         break;
       default:
@@ -118,14 +116,14 @@ private:
 inline String readText(const String& placeholder = "") {
   const int W = tft.width();
   const int H = tft.height();
-  const int headerH = 30;
+  const int headerH = 20;
   const int keyboardH = H * 0.6;  // 60% of screen height for keyboard
 
   // Draw header and input area
   auto drawHeader = [&](const String& currentText) {
     // Description line
     tft.fillRect(0, 0, W, headerH, UI_BG);
-    tft.setCursor(5, 5);
+    tft.setCursor(20, 5);
     tft.setTextSize(1);
     tft.setTextColor(UI_Text);
     tft.print(keyboardDesc);
