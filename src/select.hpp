@@ -4,6 +4,10 @@
 #include "colors.hpp"
 #include "input.hpp"
 #include "read-text.hpp"
+
+// Forward declare your existing ok() function that returns bool
+bool ok(String question);
+
 #include <vector>
 
 int select(const std::vector<String>& originalOptions) {
@@ -12,12 +16,39 @@ int select(const std::vector<String>& originalOptions) {
   const int screenWidth = 320;
   const int visibleItems = screenHeight / itemHeight;
 
-  int selectedIndex = 0;
-  int scrollOffset = 0;
-  std::vector<String> filteredOptions = originalOptions;
-
+  std::vector<String> filteredOptions;
   bool filtering = false;
   String searchTerm = "";
+
+  // We'll add a "Search" option on top only if original list is long enough
+  bool useSearchButton = (originalOptions.size() > 15);
+
+  // Build the filteredOptions initially
+  auto rebuildFiltered = [&]() {
+    filteredOptions.clear();
+    if (useSearchButton) {
+      filteredOptions.push_back("Search");
+    }
+    if (filtering) {
+      filteredOptions.push_back("Reset search");
+      for (const auto& item : originalOptions) {
+        String name = item;
+        name.toLowerCase();
+        if (name.startsWith(searchTerm)) {
+          filteredOptions.push_back(item);
+        }
+      }
+    } else {
+      for (const auto& item : originalOptions) {
+        filteredOptions.push_back(item);
+      }
+    }
+  };
+
+  rebuildFiltered();
+
+  int selectedIndex = 0;
+  int scrollOffset = 0;
 
   auto redraw = [&]() {
     tft.fillScreen(UI_BG);
@@ -84,43 +115,71 @@ int select(const std::vector<String>& originalOptions) {
     } else if (event == Input::TripleClick) {
       return -1;
     } else if (event == Input::LongPress) {
-      // Handle "Reset search"
-      if (filtering && selectedIndex == 0 && filteredOptions[0] == "Reset search") {
-        filteredOptions = originalOptions;
-        filtering = false;
+      // Handle special buttons when filtering or search button
+      if (useSearchButton && selectedIndex == 0) {
+        // User clicked "Search" button → ask for search term
+        String input = readText("Search", searchTerm);
+        input.toLowerCase();
+
+        if (input.length() > 0) {
+          searchTerm = input;
+          filtering = true;
+        } else {
+          filtering = false;
+          searchTerm = "";
+        }
+
+        rebuildFiltered();
         selectedIndex = 0;
         scrollOffset = 0;
         redraw();
         continue;
       }
 
-      return selectedIndex;
-    }
-
-    // Trigger search if list is long enough and user triple-clicks at top
-    if (originalOptions.size() > 15 && event == Input::LongPress && selectedIndex == 0) {
-      String input = readText("Search", searchTerm);
-      input.toLowerCase();
-      searchTerm = input;
-
-      filteredOptions.clear();
-
-      // Add reset option
-      filteredOptions.push_back("Reset search");
-
-      for (const auto& item : originalOptions) {
-        String name = item;
-        name.toLowerCase();
-
-        if (name.startsWith(searchTerm)) {
-          filteredOptions.push_back(item);
+      if (filtering) {
+        // Reset search option is always at index 1 when filtering is active and search button shown
+        int resetIndex = useSearchButton ? 1 : 0;
+        if (selectedIndex == resetIndex) {
+          filtering = false;
+          searchTerm = "";
+          rebuildFiltered();
+          selectedIndex = 0;
+          scrollOffset = 0;
+          redraw();
+          continue;
         }
       }
 
-      filtering = true;
-      selectedIndex = 0;
-      scrollOffset = 0;
-      redraw();
+      // Normal selection
+      int realIndex;
+
+      if (useSearchButton) {
+        if (filtering) {
+          // filteredOptions: ["Search", "Reset search", ...filtered items...]
+          realIndex = selectedIndex - 2;
+        } else {
+          // filteredOptions: ["Search", ...all items...]
+          realIndex = selectedIndex - 1;
+        }
+      } else {
+        // No search button
+        realIndex = selectedIndex;
+      }
+
+      // If invalid selection or search/reset option clicked as actual selection, ignore
+      if (realIndex < 0 || realIndex >= (int)originalOptions.size()) {
+        // Do nothing, continue selection
+        continue;
+      }
+
+      // Confirm selection with user
+      bool confirmed = ok("Select: " + originalOptions[realIndex] + "?");
+      if (confirmed) {
+        return realIndex;
+      } else {
+        redraw();
+        continue;  // back to selection
+      }
     }
 
     delay(20);
