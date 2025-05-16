@@ -18,7 +18,6 @@ bool ok(String question) {
   tft.println(question);
 
   bool focusYes = false;
-  bool prevFocusYes = !focusYes;
 
   tft.setTextSize(3);
 
@@ -43,8 +42,6 @@ bool ok(String question) {
 
     if (event == Input::Click) {
       focusYes = !focusYes;
-
-      // Set new target position and width
       targetX = (focusYes ? yesX : noX) - 10;
       targetW = focusYes ? yesWidth : noWidth;
       lastUpdate = millis();
@@ -53,41 +50,32 @@ bool ok(String question) {
       return focusYes;
     }
 
-    if (prevFocusYes == focusYes) {
-      delay(10);
-      continue;
-    }
-
     // Animate movement over 200ms
     unsigned long now = millis();
     float progress = min(1.0f, (now - lastUpdate) / float(animationDuration));
-
-    // Linear interpolation for smooth movement
     int drawX = currentX + (targetX - currentX) * progress;
     int drawW = currentW + (targetW - currentW) * progress;
 
-    // Redraw background first
+    // Clear both rects
     tft.fillRect(yesX - 10, y, yesWidth, height, UI_BG);
     tft.fillRect(noX - 10, y, noWidth, height, UI_BG);
 
-    // Draw sliding highlight
+    // Draw moving highlight
     tft.fillRect(drawX, y, drawW, height, UI_Secondary);
 
-    // Draw text
+    // Text labels
     tft.setCursor(yesX, y);
     tft.print("YES");
 
     tft.setCursor(noX, y);
     tft.print("NO");
 
-    // Update animation state
+    // Finalize position after animation completes
     if (progress >= 1.0f) {
       currentX = targetX;
       currentW = targetW;
     }
 
     delay(20);  // ~50 FPS
-
-    prevFocusYes = focusYes;
   }
 }
