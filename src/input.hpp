@@ -3,6 +3,9 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+#include "colors.hpp"
+#include "rgb-led.hpp"
+
 namespace Input {
 
 // Pin definition (change as needed)
@@ -57,6 +60,13 @@ static void inputTask(void*) {
 
   while (running) {
     bool isPressed = digitalRead(BUTTON_PIN) == HIGH;
+
+    if (isPressed) {
+      setRGB_LEDColor(CLICKED);
+    } else {
+      setRGB_LEDColor(NOT_CLICKED);
+    }
+
     uint32_t now = millis();
 
     switch (state) {
@@ -137,10 +147,12 @@ static inline void stop() {
 // Retrieve and clear the last event
 Event getLastEvent() {
   Event e;
+
   portENTER_CRITICAL(&mux);
   e = lastEvent;
   lastEvent = None;
   portEXIT_CRITICAL(&mux);
+
   return e;
 }
 
