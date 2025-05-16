@@ -11,11 +11,11 @@ static const char* keyboardDesc = "   Click=Right Double=Up\n   Triple=Left Long
 
 // 42 Labels (letters, digits, Backspace '<', Space ' ', Toggle '^', OK)
 static const String keyLabels[] = {
+  "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
   "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P",
   "A", "S", "D", "F", "G", "H", "J", "K", "L", ";",
   "Z", "X", "C", "V", "B", "N", "M", ",", ".", "?",
-  "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
-  "<", " ", "^", "OK"
+  "<", " ", "\n", "^", "OK"
 };
 
 class OnScreenKeyboard {
@@ -62,7 +62,7 @@ public:
     uint16_t w1, h1;
     tft.getTextBounds(L, px + keyW / 2, py + keyH / 2 - 4, &x1, &y1, &w1, &h1);
     tft.setCursor(px + keyW / 2 - w1 / 2, py + keyH / 2 - h1 / 2);
-    tft.print(L);
+    tft.print(L == " " ? String("_") : (L == "\n" ? String("\\") : L));
   }
 
   void drawAll() {
