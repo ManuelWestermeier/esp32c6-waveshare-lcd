@@ -144,7 +144,7 @@ inline String readText(String keyboardDesc = "   Click=Right Double=Up\n   Tripl
 
   auto drawHeader = [&](const String &cur) {
     tft.fillRect(0, 0, W, headerH, UI_BG);
-    tft.setCursor(5, 5);
+    tft.setCursor(10, 5);
     tft.setTextSize(1);
     tft.setTextColor(UI_Text);
     tft.print(keyboardDesc);
