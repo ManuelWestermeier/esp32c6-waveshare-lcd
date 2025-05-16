@@ -6,7 +6,7 @@
 #include "colors.hpp"
 
 // Simple instructions: Click=←, Double=→, Triple=↑, Long=Select
-static const char* keyboardDesc = "Click=Right Double=Up\n   Triple=Down Long=Select";
+static const char* keyboardDesc = "Click=Right Double=Up\n   Triple=Left Long=Select";
 
 // 42 Labels (letters, digits, Backspace '<', OK)
 static const String keyLabels[] = {
@@ -67,21 +67,33 @@ public:
   void navigate(Input::Event ev) {
     int r = cursor / cols;
     int c = cursor % cols;
-    switch (ev) {
-      case Input::Click:  // →
-        c = (c < cols - 1 ? c + 1 : 0);
-        break;
-      case Input::TripleClick:  // ←
-        c = (c > 0 ? c - 1 : cols - 1);
-        break;
-      case Input::DoubleClick:  // ↑
-        r = (r > 0 ? r - 1 : rows - 1);
-        break;
-      default:
-        return;
+
+    if (ev == Input::Click) {  // →
+      if (c < cols - 1) {
+        c = c + 1;
+      } else {
+        c = 0;
+      }
+    } else if (ev == Input::TripleClick) {  // ←
+      if (c > 0) {
+        c = c - 1;
+      } else {
+        c = cols - 1;
+      }
+    } else if (ev == Input::DoubleClick) {  // ↑
+      if (r > 0) {
+        r = r - 1;
+      } else {
+        r = rows - 1;
+      }
+    } else {
+      return;
     }
+
     int newIdx = r * cols + c;
-    if (newIdx >= keyCount) newIdx = keyCount - 1;
+    if (newIdx >= keyCount) {
+      newIdx = keyCount - 1;
+    }
     cursor = newIdx;
   }
 
