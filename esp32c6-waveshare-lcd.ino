@@ -6,7 +6,8 @@
 
 #define USE_INIT_SCREEN false
 
-void setup() {
+void setup()
+{
   init();
   Input::start();
 #if USE_INIT_SCREEN
@@ -16,9 +17,11 @@ void setup() {
 
 #include "src/ask.hpp"
 
-void loop() {
-  bool getPassword = ok(" Whats your\n Wifi Password?");
-  if (getPassword) {
+void loop()
+{
+  bool getPassword = ok(" Whats your\n Wifi Password\n ?");
+  if (getPassword)
+  {
     ask("What is your Wifi password");
   }
 }
