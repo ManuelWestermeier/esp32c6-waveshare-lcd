@@ -45,7 +45,7 @@ public:
     bool sel = (idx == cursor);
 
     // draw key background
-    tft.fillRect(px + 1, py + 1, keyW - 2, keyH - 2, sel ? UI_Secondary : UI_BG);
+    tft.fillRect(px - 1, py - 1, keyW, keyH, sel ? UI_Secondary : UI_BG);
 
     // get label and adjust for uppercase/lowercase
     String L = keyLabels[idx];
@@ -57,6 +57,7 @@ public:
     // draw label
     tft.setTextColor(UI_Text);
     tft.setTextSize(idx > 39 ? 1 : 2);
+
     int16_t x1, y1;
     uint16_t w1, h1;
     tft.getTextBounds(L, px + keyW / 2, py + keyH / 2 - 4, &x1, &y1, &w1, &h1);
@@ -67,6 +68,7 @@ public:
   void drawAll() {
     tft.fillRect(x, y, w, h, UI_BG);
     for (int i = 0; i < keyCount; ++i) drawKey(i);
+    tft.setTextColor(UI_Text);
   }
 
   void navigate(Input::Event ev) {
