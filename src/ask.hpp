@@ -5,11 +5,13 @@
 #include "input.hpp"
 #include "colors.hpp"
 
-String ask(String question, String _default = "") {
+String ask(String question, String _default = "")
+{
   return readText(question, _default);
 }
 
-bool ok(String question) {
+bool ok(String question)
+{
   tft.setTextSize(question.length() > 50 ? 1 : 2);
   tft.fillScreen(UI_BG);
   tft.setTextColor(UI_Text);
@@ -30,25 +32,29 @@ bool ok(String question) {
   int y = 290;
   int height = 24;
 
-  int currentX = noX - 10;  // Initial position: NO
+  int currentX = noX - 10; // Initial position: NO
   int targetX = currentX;
   int currentW = noWidth;
   int targetW = currentW;
 
   unsigned long lastUpdate = millis();
-  const int animationDuration = 300;  // ms
+  const int animationDuration = 300; // ms
 
-  while (true) {
+  while (true)
+  {
     auto event = Input::getLastEvent();
 
-    if (event == Input::Click) {
+    if (event == Input::Click)
+    {
       focusYes = !focusYes;
 
       // Set new target position and width
       targetX = (focusYes ? yesX : noX) - 10;
       targetW = focusYes ? yesWidth : noWidth;
       lastUpdate = millis();
-    } else if (event == Input::LongPress) {
+    }
+    else if (event == Input::LongPress)
+    {
       tft.setTextSize(2);
       return focusYes;
     }
@@ -57,7 +63,8 @@ bool ok(String question) {
     unsigned long now = millis();
     float progress = min(1.0f, (now - lastUpdate) / float(animationDuration));
 
-    if (prevFocusYes == focusYes && progress >= 1.0f) {
+    if (prevFocusYes == focusYes && progress >= 1.0f)
+    {
       delay(10);
       continue;
     }
@@ -81,12 +88,13 @@ bool ok(String question) {
     tft.print("NO");
 
     // Update animation state
-    if (progress >= 1.0f) {
+    if (progress >= 1.0f)
+    {
       currentX = targetX;
       currentW = targetW;
     }
 
-    delay(20);  // ~50 FPS
+    delay(20); // ~50 FPS
 
     prevFocusYes = focusYes;
   }

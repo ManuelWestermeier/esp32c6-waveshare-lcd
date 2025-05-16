@@ -6,8 +6,7 @@
 
 #define USE_INIT_SCREEN false
 
-void setup()
-{
+void setup() {
   init();
   Input::start();
 #if USE_INIT_SCREEN
@@ -15,13 +14,13 @@ void setup()
 #endif
 }
 
+#include "src/select.hpp"
 #include "src/ask.hpp"
 
-void loop()
-{
-  bool getPassword = ok(" Whats your\n Wifi Password\n ?");
-  if (getPassword)
-  {
-    ask("What is your Wifi password");
-  }
+void loop() {
+  std::vector<String> options;
+  options.push_back("Hello");
+  options.push_back("Nothing");
+  options.push_back("NiggaThing");
+  ok(" What is your\n Wifi password" + String(options.at(select(options))));
 }
