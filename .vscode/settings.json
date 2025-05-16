@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "*.ino": "cpp",
+        "*.hpp": "cpp",
+        "bitset": "cpp",
+        "string_view": "cpp",
+        "__locale": "cpp",
+        "string": "cpp"
+    }
+}

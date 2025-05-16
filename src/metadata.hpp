@@ -1,6 +1,9 @@
 #pragma once
 
 #include <Arduino.h>
+#include <vector>
+
+using namespace std;
 
 #define TFT_MOSI 6
 #define TFT_SCLK 7

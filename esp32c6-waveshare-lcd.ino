@@ -14,8 +14,11 @@ void setup() {
 #endif
 }
 
-#include "src/read-text.hpp"
+#include "src/ask.hpp"
 
 void loop() {
-  readText("Hello");
+  bool getPassword = ok(" Whats your\n Wifi Password?");
+  if (getPassword) {
+    ask("What is your Wifi password");
+  }
 }
