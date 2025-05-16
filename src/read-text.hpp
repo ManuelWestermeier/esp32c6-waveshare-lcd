@@ -71,11 +71,11 @@ public:
       case Input::Click:  // →
         c = (c < cols - 1 ? c + 1 : 0);
         break;
+      case Input::TripleClick:  // ←
+        c = (c > 0 ? c - 1 : cols - 1);
+        break;
       case Input::DoubleClick:  // ↑
         r = (r > 0 ? r - 1 : rows - 1);
-        break;
-      case Input::TripleClick:  // ↓
-        r = (r < rows - 1 ? r + 1 : 0);
         break;
       default:
         return;
@@ -164,7 +164,7 @@ inline String readText(const String& placeholder = "") {
   tft.setCursor(20, 20);
 
   auto text = kb.getText();
-  
+
   tft.setTextSize(2);
   tft.println(text);
 
