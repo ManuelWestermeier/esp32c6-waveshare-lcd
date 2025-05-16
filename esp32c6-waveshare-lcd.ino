@@ -3,28 +3,20 @@
 #include "src/input.hpp"
 #include "src/init.hpp"
 #include "src/init-screen.hpp"
+#include "src/start.hpp"
 
 #define USE_INIT_SCREEN false
 
-void setup() {
+void setup()
+{
   init();
   Input::start();
 #if USE_INIT_SCREEN
   initScreen();
 #endif
+  start();
 }
 
-#include "src/select.hpp"
-#include "src/ask.hpp"
-
-void loop() {
-  std::vector<String> options;
-  options.push_back("Hello");
-  options.push_back("Nothing");
-  for (int i = 0; i < 50; i++) {
-    options.push_back("Option" + String(i));
-  }
-  auto index = select(options);
-  if (index >= 0)
-    ok(" What is your\n Wifi password" + String(options.at(index)));
+void loop()
+{
 }
