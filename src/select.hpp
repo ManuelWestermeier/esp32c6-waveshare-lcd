@@ -47,8 +47,6 @@ int select(const std::vector<String>& options) {
       tft.fillTriangle(screenWidth - 12, screenHeight - 2, screenWidth - 2, screenHeight - 2, screenWidth - 7, screenHeight - 10, UI_Text);  // Down
     }
 
-    tft.display();
-
     // Input handling
     auto event = Input::getLastEvent();
 
