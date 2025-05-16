@@ -5,23 +5,21 @@
 #include "input.hpp"
 #include "read-text.hpp"
 
-// Forward declare your existing ok() function that returns bool
 bool ok(String question);
 
 #include <vector>
 
 int select(const std::vector<String>& originalOptions) {
-  const int itemHeight = 20;
-  const int screenHeight = 172;
-  const int screenWidth = 320;
+  const int itemHeight = 30;
+  const int screenHeight = 320;
+  const int screenWidth = 172;
   const int visibleItems = screenHeight / itemHeight;
 
   std::vector<String> filteredOptions;
   bool filtering = false;
   String searchTerm = "";
 
-  // We'll add a "Search" option on top only if original list is long enough
-  bool useSearchButton = (originalOptions.size() > 15);
+  bool useSearchButton = (originalOptions.size() > 5);
 
   // Build the filteredOptions initially
   auto rebuildFiltered = [&]() {
@@ -64,12 +62,12 @@ int select(const std::vector<String>& originalOptions) {
 
       if (i == selectedIndex) {
         tft.fillRect(0, y, screenWidth, itemHeight, UI_Secondary);
-        tft.setTextColor(UI_BG);
+        tft.setTextColor(UI_Text);
       } else {
         tft.setTextColor(UI_Text);
       }
 
-      tft.setCursor(4, y + 2);
+      tft.setCursor(10, y + 10);
       tft.print(filteredOptions[i]);
     }
 
