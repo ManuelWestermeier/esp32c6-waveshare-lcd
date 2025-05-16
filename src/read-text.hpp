@@ -14,7 +14,7 @@ static const String keyLabels[] = {
   "A", "S", "D", "F", "G", "H", "J", "K", "L", ";",
   "Z", "X", "C", "V", "B", "N", "M", ",", ".", "?",
   "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
-  "<", "OK"
+  "<", " ", "^", "OK"
 };
 
 class OnScreenKeyboard {
@@ -26,8 +26,8 @@ public:
     keyCount = sizeof(keyLabels) / sizeof(keyLabels[0]);
     cols = 10;
     rows = (keyCount + cols - 1) / cols;  // calculate rows based on count
-    keyW = w / cols;
-    keyH = h / rows;
+    keyW = (w / cols) - 1;
+    keyH = (h / rows) - 15;
   }
 
   void setText(const String& s) {
@@ -36,6 +36,11 @@ public:
 
   void drawKey(int idx) {
     if (idx < 0 || idx >= keyCount) return;
+
+    if (idx > 39) {
+      tft.setTextSize(1);
+    }
+
     int r = idx / cols;
     int c = idx % cols;
     int px = x + c * keyW;
@@ -46,7 +51,6 @@ public:
     // draw label
     String L = keyLabels[idx];
     if (L.length() == 0) return;
-    tft.setTextSize(1);
     tft.setTextColor(UI_Text);
     int16_t x1, y1;
     uint16_t w1, h1;
@@ -59,6 +63,7 @@ public:
   void drawAll() {
     // clear keyboard area
     tft.fillRect(x, y, w, h, UI_BG);
+    tft.setTextSize(2);
     for (int i = 0; i < keyCount; ++i) {
       drawKey(i);
     }
@@ -154,7 +159,7 @@ inline String readText(const String& placeholder = "") {
     tft.print(currentText);
   };
 
-  OnScreenKeyboard kb(0, H - keyboardH, W, keyboardH, 4);
+  OnScreenKeyboard kb(2, ((H - keyboardH) * 1.5) + 10, W, keyboardH, 4);
   kb.setText(placeholder);
   drawHeader(placeholder);
   kb.drawAll();
