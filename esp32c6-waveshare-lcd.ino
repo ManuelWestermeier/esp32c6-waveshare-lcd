@@ -19,7 +19,7 @@ void setup()
 
 void loop()
 {
-  bool getPassword = ok(" Whats your\n Wifi Password\n ?");
+  bool getPassword = ok("  Whats your\n Wifi Password\n ?");
   if (getPassword)
   {
     ask("What is your Wifi password");

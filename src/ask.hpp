@@ -36,7 +36,7 @@ bool ok(String question) {
   int targetW = currentW;
 
   unsigned long lastUpdate = millis();
-  const int animationDuration = 200;  // ms
+  const int animationDuration = 300;  // ms
 
   while (true) {
     auto event = Input::getLastEvent();
@@ -57,7 +57,7 @@ bool ok(String question) {
     unsigned long now = millis();
     float progress = min(1.0f, (now - lastUpdate) / float(animationDuration));
 
-    if (prevFocusYes == focusYes && progress <= 1.0f) {
+    if (prevFocusYes == focusYes && progress >= 1.0f) {
       delay(10);
       continue;
     }
