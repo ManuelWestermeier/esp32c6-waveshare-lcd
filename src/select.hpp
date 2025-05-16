@@ -10,7 +10,7 @@ bool ok(String question);
 #include <vector>
 
 int select(const std::vector<String>& originalOptions) {
-  const int itemHeight = 30;
+  const int itemHeight = 31;
   const int screenHeight = 320;
   const int screenWidth = 172;
   const int visibleItems = screenHeight / itemHeight;
@@ -69,14 +69,6 @@ int select(const std::vector<String>& originalOptions) {
 
       tft.setCursor(10, y + 10);
       tft.print(filteredOptions[i]);
-    }
-
-    // Scroll arrows
-    if (scrollOffset > 0) {
-      tft.fillTriangle(screenWidth - 12, 2, screenWidth - 2, 2, screenWidth - 7, 10, UI_Text);
-    }
-    if (scrollOffset + visibleItems < totalItems) {
-      tft.fillTriangle(screenWidth - 12, screenHeight - 2, screenWidth - 2, screenHeight - 2, screenWidth - 7, screenHeight - 10, UI_Text);
     }
   };
 

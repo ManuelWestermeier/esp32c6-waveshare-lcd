@@ -25,5 +25,5 @@ void loop() {
   for (int i = 0; i < 50; i++) {
     options.push_back("Option" + String(i));
   }
-  ok(" What is your\n Wifi password" + String(options.at(select(options))));
+  ok(" What is your\n Wifi password" + String((select(options))));
 }
