@@ -5,9 +5,9 @@
 #include "input.hpp"
 #include "read-text.hpp"
 
-bool ok(String question);
-
 #include <vector>
+
+bool ok(String question);
 
 int select(const std::vector<String>& originalOptions) {
   const int itemHeight = 31;
@@ -21,12 +21,9 @@ int select(const std::vector<String>& originalOptions) {
 
   bool useSearchButton = (originalOptions.size() > 9);
 
-  // Build the filteredOptions initially
   auto rebuildFiltered = [&]() {
     filteredOptions.clear();
-    if (useSearchButton) {
-      filteredOptions.push_back("Search");
-    }
+    if (useSearchButton) filteredOptions.push_back("Search");
     if (filtering) {
       filteredOptions.push_back("Reset search");
       for (const auto& item : originalOptions) {
@@ -62,27 +59,25 @@ int select(const std::vector<String>& originalOptions) {
 
       if (i == selectedIndex) {
         tft.fillRect(0, y, screenWidth, itemHeight, UI_Secondary);
-        tft.setTextColor(UI_Text);
-      } else {
-        tft.setTextColor(UI_Text);
       }
 
+      tft.setTextColor(UI_Text);
       tft.setCursor(10, y + 10);
       tft.print(filteredOptions[i]);
     }
   };
 
-  redraw();  // Initial draw
+  redraw();
 
   while (true) {
     auto event = Input::getLastEvent();
-
     if (event == Input::None) {
       delay(10);
       continue;
     }
 
     int totalItems = filteredOptions.size();
+    if (totalItems == 0) continue;
 
     if (event == Input::Click) {
       selectedIndex++;
@@ -90,7 +85,7 @@ int select(const std::vector<String>& originalOptions) {
         selectedIndex = 0;
         scrollOffset = 0;
       } else if (selectedIndex >= scrollOffset + visibleItems) {
-        scrollOffset++;
+        scrollOffset = min(scrollOffset + 1, totalItems - visibleItems);
       }
       redraw();
     } else if (event == Input::DoubleClick) {
@@ -99,15 +94,14 @@ int select(const std::vector<String>& originalOptions) {
         selectedIndex = totalItems - 1;
         scrollOffset = max(0, totalItems - visibleItems);
       } else if (selectedIndex < scrollOffset) {
-        scrollOffset--;
+        scrollOffset = max(0, scrollOffset - 1);
       }
       redraw();
     } else if (event == Input::TripleClick) {
       return -1;
     } else if (event == Input::LongPress) {
-      // Handle special buttons when filtering or search button
+      // Handle Search
       if (useSearchButton && selectedIndex == 0) {
-        // User clicked "Search" button → ask for search term
         String input = readText("Search", searchTerm);
         input.toLowerCase();
 
@@ -126,8 +120,8 @@ int select(const std::vector<String>& originalOptions) {
         continue;
       }
 
+      // Handle Reset search
       if (filtering) {
-        // Reset search option is always at index 1 when filtering is active and search button shown
         int resetIndex = useSearchButton ? 1 : 0;
         if (selectedIndex == resetIndex) {
           filtering = false;
@@ -140,44 +134,33 @@ int select(const std::vector<String>& originalOptions) {
         }
       }
 
-      // Normal selection
+      // Calculate index into originalOptions
       int stringIndex;
-
       if (useSearchButton) {
-        if (filtering) {
-          // filteredOptions: ["Search", "Reset search", ...filtered items...]
-          stringIndex = selectedIndex - 2;
-        } else {
-          // filteredOptions: ["Search", ...all items...]
-          stringIndex = selectedIndex - 1;
-        }
+        stringIndex = filtering ? selectedIndex - 2 : selectedIndex - 1;
       } else {
-        // No search button
         stringIndex = selectedIndex;
       }
 
-      // If invalid selection or search/reset option clicked as actual selection, ignore
       if (stringIndex < 0 || stringIndex >= (int)filteredOptions.size()) {
-        // Do nothing, continue selection
         continue;
       }
 
+      String selectedString = filteredOptions[selectedIndex];
       int realIndex = -1;
-      for (int i = 0; i < originalOptions.size(); i++) {
-        if (originalOptions[i] == filteredOptions[stringIndex]) {
+      for (int i = 0; i < (int)originalOptions.size(); i++) {
+        if (originalOptions[i] == selectedString) {
           realIndex = i;
           break;
         }
       }
+
       if (realIndex < 0) continue;
 
-      // Confirm selection with user
-      bool confirmed = ok("Select: " + originalOptions[realIndex] + "?");
-      if (confirmed) {
+      if (ok("Select: " + originalOptions[realIndex] + "?")) {
         return realIndex;
       } else {
         redraw();
-        continue;  // back to selection
       }
     }
 
