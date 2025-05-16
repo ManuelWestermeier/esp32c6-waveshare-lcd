@@ -21,9 +21,10 @@ void loop() {
   std::vector<String> options;
   options.push_back("Hello");
   options.push_back("Nothing");
-  options.push_back("NiggaThing");
   for (int i = 0; i < 50; i++) {
     options.push_back("Option" + String(i));
   }
-  ok(" What is your\n Wifi password" + String((select(options))));
+  auto index = select(options);
+  if (index >= 0)
+    ok(" What is your\n Wifi password" + String(options.at(index)));
 }

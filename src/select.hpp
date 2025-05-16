@@ -19,7 +19,7 @@ int select(const std::vector<String>& originalOptions) {
   bool filtering = false;
   String searchTerm = "";
 
-  bool useSearchButton = (originalOptions.size() > 5);
+  bool useSearchButton = (originalOptions.size() > 9);
 
   // Build the filteredOptions initially
   auto rebuildFiltered = [&]() {
@@ -141,26 +141,35 @@ int select(const std::vector<String>& originalOptions) {
       }
 
       // Normal selection
-      int realIndex;
+      int stringIndex;
 
       if (useSearchButton) {
         if (filtering) {
           // filteredOptions: ["Search", "Reset search", ...filtered items...]
-          realIndex = selectedIndex - 2;
+          stringIndex = selectedIndex - 2;
         } else {
           // filteredOptions: ["Search", ...all items...]
-          realIndex = selectedIndex - 1;
+          stringIndex = selectedIndex - 1;
         }
       } else {
         // No search button
-        realIndex = selectedIndex;
+        stringIndex = selectedIndex;
       }
 
       // If invalid selection or search/reset option clicked as actual selection, ignore
-      if (realIndex < 0 || realIndex >= (int)originalOptions.size()) {
+      if (stringIndex < 0 || stringIndex >= (int)filteredOptions.size()) {
         // Do nothing, continue selection
         continue;
       }
+
+      int realIndex = -1;
+      for (int i = 0; i < originalOptions.size(); i++) {
+        if (originalOptions[i] == filteredOptions[stringIndex]) {
+          realIndex = i;
+          break;
+        }
+      }
+      if (realIndex < 0) continue;
 
       // Confirm selection with user
       bool confirmed = ok("Select: " + originalOptions[realIndex] + "?");
