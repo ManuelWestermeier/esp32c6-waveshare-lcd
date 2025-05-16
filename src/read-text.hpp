@@ -45,7 +45,7 @@ public:
     bool sel = (idx == cursor);
 
     // draw key background
-    tft.fillRect(px, py + 1, keyW, keyH, sel ? UI_Secondary : UI_BG);
+    tft.fillRect(px - 1, py + 1, keyW, keyH, sel ? UI_Secondary : UI_BG);
 
     // get label and adjust for uppercase/lowercase
     String L = keyLabels[idx];
@@ -120,7 +120,7 @@ private:
   int x, y, w, h;
   int cols, rows, keyW, keyH;
   int keyCount;
-  int cursor;
+  int cursor = 25;
   bool done;
   bool uppercase;
   String text;
