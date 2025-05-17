@@ -7,6 +7,11 @@
 #include <WiFi.h>
 #include <LittleFS.h>
 
+struct Credentials {
+  String username;
+  String password;
+};
+
 void start() {
   tft.setCursor(20, 20);
   // Mount LittleFS
@@ -19,15 +24,6 @@ void start() {
   // Ensure users directory exists
   LittleFS.mkdir("/users");
   LittleFS.mkdir("/wifi");
-
-  // Scan available networks
-  Serial.println("Scanning Wi-Fi networks...");
-  tft.println("Scanning Wi-Fi networks...");
-  int n = WiFi.scanNetworks();
-  std::vector<String> ssids;
-  for (int i = 0; i < n; ++i) {
-    ssids.push_back(WiFi.SSID(i));
-  }
 
   // Ask for username
   String username = ask("Enter your username", "");
@@ -44,15 +40,17 @@ void start() {
   } else {
     File userFile = LittleFS.open(userPath, "r");
     String storedPassword = userFile.readStringUntil('\n');
+    storedPassword.trim();
     String storedUsername = userFile.readStringUntil('\n');
     userFile.close();
 getPassword:
     password = ask("Enter your password", "");
-    if (password != storedPassword) {
-      tft.setCursor(20, 20);
-      tft.println("Password does not match.");
-      Serial.println("Password does not match.");
-      delay(2000);
+    password.trim();
+
+    if (strcmp(password.c_str(), storedPassword.c_str()) != 0) {
+      tft.setCursor(0, 20);
+      tft.println(" Password does\n not match.");
+      delay(3000);
       goto getPassword;
     }
   }
@@ -67,26 +65,38 @@ getPassword:
 
     // Try to connect automatically
     WiFi.begin(storedSSID.c_str(), storedPass.c_str());
-    Serial.print("Connecting to stored Wi-Fi: ");
-    Serial.println(storedSSID);
+    tft.setCursor(0, 20);
+    tft.println("Connecting to stored Wi-Fi: ");
+    tft.println(storedSSID);
     unsigned long startAttemptTime = millis();
     while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 10000) {
       delay(500);
-      Serial.print(".");
+      tft.print(".");
     }
+    tft.println();
     if (WiFi.status() == WL_CONNECTED) {
-      Serial.println("\nConnected to Wi-Fi.");
+      tft.println("\nConnected to Wi-Fi.");
       return;
     } else {
-      Serial.println("\nFailed to connect to stored Wi-Fi.");
+      tft.println("\nFailed to connect to stored Wi-Fi.");
     }
+  }
+
+wifiAsk:
+  // Scan available networks
+  Serial.println("Scanning Wi-Fi networks...");
+  tft.println("Scanning Wi-Fi networks...");
+  int n = WiFi.scanNetworks();
+  std::vector<String> ssids;
+  for (int i = 0; i < n; ++i) {
+    ssids.push_back(WiFi.SSID(i));
   }
 
   // Ask for Wi-Fi network
   int index = select(ssids);
   if (index == -1) {
     Serial.println("No Wi-Fi selected.");
-    return;
+    goto wifiAsk;
   }
   String chosenSSID = ssids[index];
   String wifiPassword = ask("Enter password for " + chosenSSID, "");
@@ -99,16 +109,20 @@ getPassword:
 
   // Connect to Wi-Fi
   WiFi.begin(chosenSSID.c_str(), wifiPassword.c_str());
-  Serial.print("Connecting to Wi-Fi: ");
-  Serial.println(chosenSSID);
+  tft.setCursor(0, 20);
+  tft.print("Connecting to Wi-Fi: ");
+  tft.println(chosenSSID);
   unsigned long startAttemptTime = millis();
   while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 10000) {
     delay(500);
-    Serial.print(".");
+    tft.print(".");
   }
+  tft.println();
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\nConnected successfully.");
+    tft.println("\nConnected successfully.");
+    return;
   } else {
-    Serial.println("\nFailed to connect.");
+    tft.println("\nFailed to connect.");
   }
+  goto wifiAsk;
 }

@@ -6,6 +6,7 @@
 
 void init()
 {
+  Serial.begin(115200);
   pinMode(BUTTON, INPUT_PULLDOWN);
   pixels.begin();
   // SPI init (optional—Adafruit does it for you)
