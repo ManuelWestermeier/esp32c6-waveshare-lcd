@@ -45,6 +45,7 @@ Credentials start() {
       tft.setCursor(20, 20);
       tft.println("Error creating user file!");
       delay(3000);
+      tft.fillScreen(UI_BG);
       return start();  // try again
     }
     userFile.println(username);
@@ -61,6 +62,7 @@ Credentials start() {
         tft.setCursor(20, 20);
         tft.println("Error reading user file!");
         delay(3000);
+        tft.fillScreen(UI_BG);
         return start();
       }
 
@@ -114,6 +116,7 @@ Credentials start() {
       tft.setCursor(20, 20);
       tft.println("Connected!");
       delay(1000);
+      tft.fillScreen(UI_BG);
       return { username, password };
     } else {
       // Disconnect and clear WiFi state after failed attempt
@@ -185,6 +188,7 @@ Credentials start() {
       tft.setTextColor(UI_Text);
       tft.setCursor(20, 20);
       tft.println("Connected!");
+      tft.fillScreen(UI_BG);
       delay(1000);
       return { username, password };
     } else {
