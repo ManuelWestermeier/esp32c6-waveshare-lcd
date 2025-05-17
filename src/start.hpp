@@ -132,7 +132,7 @@ Credentials start() {
     tft.println();
 
     if (WiFi.status() == WL_CONNECTED) {
-      tft.fill();
+      tft.fillScreen(UI_BG);
       tft.println("Connected successfully.");
       tft.fillScreen(UI_BG);
       delay(1000);
