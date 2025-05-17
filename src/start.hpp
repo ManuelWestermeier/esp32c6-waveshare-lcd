@@ -8,10 +8,10 @@
 #include <LittleFS.h>
 
 void start() {
+  tft.setCursor(20, 20);
   // Mount LittleFS
-  if (!LittleFS.begin()) {
+  if (!LittleFS.begin(true)) {
     Serial.println("Failed to mount LittleFS");
-    tft.setCursor(20, 20);
     tft.println("Failed to mount LittleFS");
     return;
   }
@@ -22,6 +22,7 @@ void start() {
 
   // Scan available networks
   Serial.println("Scanning Wi-Fi networks...");
+  tft.println("Scanning Wi-Fi networks...");
   int n = WiFi.scanNetworks();
   std::vector<String> ssids;
   for (int i = 0; i < n; ++i) {
@@ -45,10 +46,14 @@ void start() {
     String storedPassword = userFile.readStringUntil('\n');
     String storedUsername = userFile.readStringUntil('\n');
     userFile.close();
+getPassword:
     password = ask("Enter your password", "");
     if (password != storedPassword) {
+      tft.setCursor(20, 20);
+      tft.println("Password does not match.");
       Serial.println("Password does not match.");
-      return;
+      delay(2000);
+      goto getPassword;
     }
   }
 
