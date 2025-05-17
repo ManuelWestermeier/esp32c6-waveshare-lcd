@@ -63,6 +63,8 @@ int select(const std::vector<String>& originalOptions) {
 
       tft.setTextColor(UI_Text);
       tft.setCursor(10, y + 10);
+      if (filteredOptions[i].length() > 10)
+        tft.setTextSize(1);
       tft.print(filteredOptions[i]);
     }
   };
