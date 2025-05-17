@@ -19,7 +19,8 @@ Credentials start() {
   if (!LittleFS.begin(true)) {
     Serial.println("Failed to mount LittleFS");
     tft.println("Failed to mount LittleFS");
-    return { "", "" };
+    delay(2000);
+    return start();
   }
 
   // Ensure necessary directories exist
@@ -102,6 +103,7 @@ Credentials start() {
     int index = select(ssids);
     if (index == -1 || index >= ssids.size()) {
       tft.println("No Wi-Fi selected.");
+      delay(2000);
       continue;
     }
 
