@@ -9,16 +9,17 @@
 
 #define USE_INIT_SCREEN false
 
-void setup()
-{
+void setup() {
   init();
   Input::start();
 #if USE_INIT_SCREEN
   initScreen();
 #endif
-  start();
+  auto credentials = start();
+  tft.setCursor(0, 20);
+  tft.println(credentials.username);
+  tft.println(credentials.password);
 }
 
-void loop()
-{
+void loop() {
 }

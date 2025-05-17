@@ -12,16 +12,17 @@ struct Credentials {
   String password;
 };
 
-void start() {
+Credentials start() {
   tft.setCursor(20, 20);
+
   // Mount LittleFS
   if (!LittleFS.begin(true)) {
     Serial.println("Failed to mount LittleFS");
     tft.println("Failed to mount LittleFS");
-    return;
+    return { "", "" };
   }
 
-  // Ensure users directory exists
+  // Ensure necessary directories exist
   LittleFS.mkdir("/users");
   LittleFS.mkdir("/wifi");
 
@@ -30,6 +31,7 @@ void start() {
   String userPath = "/users/" + username + "/data.txt";
 
   String password;
+
   if (!LittleFS.exists(userPath)) {
     LittleFS.mkdir("/users/" + username);
     password = ask("Create a password", "");
@@ -38,91 +40,96 @@ void start() {
     userFile.println(username);
     userFile.close();
   } else {
-    File userFile = LittleFS.open(userPath, "r");
-    String storedPassword = userFile.readStringUntil('\n');
-    storedPassword.trim();
-    String storedUsername = userFile.readStringUntil('\n');
-    userFile.close();
-getPassword:
-    password = ask("Enter your password", "");
-    password.trim();
+    bool passwordCorrect = false;
+    while (!passwordCorrect) {
+      File userFile = LittleFS.open(userPath, "r");
+      String storedPassword = userFile.readStringUntil('\n');
+      storedPassword.trim();
+      userFile.close();
 
-    if (strcmp(password.c_str(), storedPassword.c_str()) != 0) {
-      tft.setCursor(0, 20);
-      tft.println(" Password does\n not match.");
-      delay(3000);
-      goto getPassword;
+      password = ask("Enter your password", "");
+      password.trim();
+
+      if (password == storedPassword) {
+        passwordCorrect = true;
+      } else {
+        tft.setCursor(0, 20);
+        tft.println(" Password does\n not match.");
+        delay(3000);
+      }
     }
   }
 
   // Check for stored Wi-Fi credentials
   File wifiFile = LittleFS.open("/wifi/data.txt", "r");
-  String storedSSID = "", storedPass = "";
   if (wifiFile) {
-    storedSSID = wifiFile.readStringUntil('\n');
-    storedPass = wifiFile.readStringUntil('\n');
+    String storedSSID = wifiFile.readStringUntil('\n');
+    String storedPass = wifiFile.readStringUntil('\n');
     wifiFile.close();
 
-    // Try to connect automatically
+    storedSSID.trim();
+    storedPass.trim();
+
     WiFi.begin(storedSSID.c_str(), storedPass.c_str());
     tft.setCursor(0, 20);
-    tft.println("Connecting to stored Wi-Fi: ");
+    tft.println("Connecting to stored Wi-Fi:");
     tft.println(storedSSID);
+
     unsigned long startAttemptTime = millis();
     while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 10000) {
       delay(500);
       tft.print(".");
     }
     tft.println();
+
     if (WiFi.status() == WL_CONNECTED) {
-      tft.println("\nConnected to Wi-Fi.");
-      return;
+      tft.println("Connected to Wi-Fi.");
+      return { username, password };
     } else {
-      tft.println("\nFailed to connect to stored Wi-Fi.");
+      tft.println("Failed to connect to stored Wi-Fi.");
     }
   }
 
-wifiAsk:
-  // Scan available networks
-  Serial.println("Scanning Wi-Fi networks...");
-  tft.println("Scanning Wi-Fi networks...");
-  int n = WiFi.scanNetworks();
-  std::vector<String> ssids;
-  for (int i = 0; i < n; ++i) {
-    ssids.push_back(WiFi.SSID(i));
-  }
+  // Ask for new Wi-Fi credentials
+  while (true) {
+    tft.println("Scanning Wi-Fi networks...");
+    int n = WiFi.scanNetworks();
+    std::vector<String> ssids;
+    for (int i = 0; i < n; ++i) {
+      ssids.push_back(WiFi.SSID(i));
+    }
 
-  // Ask for Wi-Fi network
-  int index = select(ssids);
-  if (index == -1) {
-    Serial.println("No Wi-Fi selected.");
-    goto wifiAsk;
-  }
-  String chosenSSID = ssids[index];
-  String wifiPassword = ask("Enter password for " + chosenSSID, "");
+    int index = select(ssids);
+    if (index == -1 || index >= ssids.size()) {
+      tft.println("No Wi-Fi selected.");
+      continue;
+    }
 
-  // Store Wi-Fi credentials
-  wifiFile = LittleFS.open("/wifi/data.txt", "w");
-  wifiFile.println(chosenSSID);
-  wifiFile.println(wifiPassword);
-  wifiFile.close();
+    String chosenSSID = ssids[index];
+    String wifiPassword = ask("Enter password for " + chosenSSID, "");
 
-  // Connect to Wi-Fi
-  WiFi.begin(chosenSSID.c_str(), wifiPassword.c_str());
-  tft.setCursor(0, 20);
-  tft.print("Connecting to Wi-Fi: ");
-  tft.println(chosenSSID);
-  unsigned long startAttemptTime = millis();
-  while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 10000) {
-    delay(500);
-    tft.print(".");
+    wifiFile = LittleFS.open("/wifi/data.txt", "w");
+    wifiFile.println(chosenSSID);
+    wifiFile.println(wifiPassword);
+    wifiFile.close();
+
+    WiFi.begin(chosenSSID.c_str(), wifiPassword.c_str());
+    tft.setCursor(0, 20);
+    tft.print("Connecting to Wi-Fi: ");
+    tft.println(chosenSSID);
+
+    unsigned long startAttemptTime = millis();
+    while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 10000) {
+      delay(500);
+      tft.print(".");
+    }
+    tft.println();
+
+    if (WiFi.status() == WL_CONNECTED) {
+      tft.println("Connected successfully.");
+      return { username, password };
+    } else {
+      tft.println("Failed to connect.");
+    }
   }
-  tft.println();
-  if (WiFi.status() == WL_CONNECTED) {
-    tft.println("\nConnected successfully.");
-    return;
-  } else {
-    tft.println("\nFailed to connect.");
-  }
-  goto wifiAsk;
 }
