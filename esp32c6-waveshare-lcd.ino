@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include "src/colors.hpp"
 #include "src/metadata.hpp"
 #include "src/input.hpp"
