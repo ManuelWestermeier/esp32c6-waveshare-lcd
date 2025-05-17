@@ -84,7 +84,11 @@ Credentials start() {
     tft.println();
 
     if (WiFi.status() == WL_CONNECTED) {
-      tft.println("Connected to Wi-Fi.");
+      tft.fillScreen(UI_BG);
+      tft.setCursor(0, 20);
+      tft.println(" Connected to\n Wi-Fi.");
+      delay(1000);
+      tft.fillScreen(UI_BG);
       return { username, password };
     } else {
       tft.println("Failed to connect to stored Wi-Fi.");
@@ -128,7 +132,10 @@ Credentials start() {
     tft.println();
 
     if (WiFi.status() == WL_CONNECTED) {
+      tft.fill();
       tft.println("Connected successfully.");
+      tft.fillScreen(UI_BG);
+      delay(1000);
       return { username, password };
     } else {
       tft.println("Failed to connect.");
