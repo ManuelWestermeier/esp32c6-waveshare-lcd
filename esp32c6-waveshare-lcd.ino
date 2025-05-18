@@ -8,7 +8,7 @@
 #include "src/start.hpp"
 
 // #define USE_INIT_SCREEN
-#define USE_AUTH
+// #define USE_AUTH
 
 Credentials credentials;
 
@@ -30,36 +30,6 @@ void setup() {
 #endif
 }
 
-#include "inc/qrcode.h"
-
-void drawQRCode(const char *text, int x, int y, int scale) {
-  QRCode qrcode;
-  uint8_t qrcodeData[qrcode_getBufferSize(3)];  // version 3 = 29x29 matrix
-
-  qrcode_initText(&qrcode, qrcodeData, 3, ECC_LOW, text);
-
-  int size = qrcode.size;
-
-  tft.fillRect(x, y, size * scale, size * scale, UI_BG);  // clear space
-
-  for (int row = 0; row < size; row++) {
-    for (int col = 0; col < size; col++) {
-      if (qrcode_getModule(&qrcode, col, row)) {
-        tft.fillRect(x + col * scale, y + row * scale, scale, scale, UI_BG);
-      }
-    }
-  }
-}
-
 void loop() {
-  String ip = "http://" + WiFi.localIP().toString();
-  Serial.println("IP address: " + ip);
-
-  // Draw the QR code with the IP address
-  drawQRCode(ip.c_str(), 20, 20, 4);  // x, y, scale
-  tft.setTextColor(UI_BG);
-  tft.setTextSize(2);
-  tft.setCursor(20, 150);
-  tft.println(ip);
-  delay(20000);
+  tft.println(WiFi.localIP().toString());
 }
