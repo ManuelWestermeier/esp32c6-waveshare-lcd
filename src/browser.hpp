@@ -7,13 +7,33 @@
 #include "start.hpp"
 #include "input.hpp"
 
+struct Request {
+  String type;
+  String data;
+  String toString() {
+    return type + "\n" + data;
+  }
+};
+
 struct Browser {
   Credentials credentials;
+  String appDomain;
+  bool onPage = false;
+
+  void Start() {
+    appDomain = "hg2z.duckdns.org:25279";
+  }
+
+  void Connect() {
+  }
 
   void Update() {
-    tft.fillScreen(UI_BG);
-    tft.setCursor(20, 20);
-    tft.print("HELLO");
-    delay(1000);
+    if (WiFi.status() != WL_CONNECTED) return;
+    if (appDomain.empty()) {
+      return Start();
+    }
+    if (!onPage) {
+      Connect()
+    }
   }
 };
