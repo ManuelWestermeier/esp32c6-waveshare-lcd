@@ -2,132 +2,134 @@
 
 #include <Arduino.h>
 #include <WiFi.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_ST7789.h>
 
 #include "colors.hpp"
 #include "metadata.hpp"
 #include "start.hpp"
 #include "input.hpp"
 
-struct Request
-{
+struct Request {
   String type;
   String data;
-  String toString()
-  {
+  String toString() {
     return type + "\n" + data;
   }
 };
 
-struct Browser
-{
+struct Browser {
   Credentials credentials;
   String appDomain = "";
   bool onPage = false;
   WiFiClient client;
 
-  void Start()
-  {
+  void Start() {
     appDomain = "hg2z.duckdns.org:25279";
+    onPage = false;
   }
 
-  void Connect()
-  {
+  bool Connect() {
     int sep = appDomain.indexOf(":");
-    if (sep == -1)
-    {
-      tft.setCursor(0, 0);
-      tft.fillScreen(ST77XX_BLACK);
-      tft.setTextColor(ST77XX_RED);
-      tft.println("Invalid domain!");
-      return;
+    if (sep == -1) {
+      showError("Invalid domain!");
+      return false;
     }
 
     String host = appDomain.substring(0, sep);
     int port = appDomain.substring(sep + 1).toInt();
 
-    if (!client.connect(host.c_str(), port))
-    {
-      tft.fillScreen(ST77XX_BLACK);
-      tft.setCursor(0, 0);
-      tft.setTextColor(ST77XX_RED);
-      tft.println("Conn. failed");
-      return;
+    if (!client.connect(host.c_str(), port)) {
+      showError("Connection failed");
+      return false;
     }
 
-    tft.fillScreen(ST77XX_BLACK);
-    tft.setCursor(0, 0);
+    clearScreen(ST77XX_BLACK);
     tft.setTextColor(ST77XX_GREEN);
     tft.println("Connected!");
 
-    client.println("init\n" + credentials.username);
+    client.println("init\nconnected");  // NO USERNAME SENT
     onPage = true;
+    return true;
   }
 
-  void HandleInput()
-  {
+  void HandleInput() {
     auto event = Input::getLastEvent();
 
-    if (event == Input::Click)
-    {
-      client.println("click\n" + String(millis()));
-      tft.setTextColor(ST77XX_WHITE);
-      tft.println("Click sent");
-    }
-    else if (event == Input::DoubleClick)
-    {
-      client.println("dblclick\n" + String(millis()));
-      tft.setTextColor(ST77XX_YELLOW);
-      tft.println("DoubleClick sent");
-    }
-    else if (event == Input::TripleClick)
-    {
-      client.println("tripleclick\n" + String(millis()));
-      tft.setTextColor(ST77XX_CYAN);
-      tft.println("TripleClick sent");
+    switch (event) {
+      case Input::Click:
+        client.println("click\n" + String(millis()));
+        break;
+      case Input::DoubleClick:
+        client.println("dblclick\n" + String(millis()));
+        break;
+      case Input::TripleClick:
+        Start();  // Restart logic
+        break;
+      default:
+        break;
     }
   }
 
-  void HandleServerMessages()
-  {
-    while (client.connected() && client.available())
-    {
+  void HandleServerMessages() {
+    while (client.connected() && client.available()) {
       String cmd = client.readStringUntil('\n');
 
-      if (cmd == "fillScreen")
-      {
-        String color = client.readStringUntil('\n');
-        tft.fillScreen(color.toInt());
-      }
-      else if (cmd == "setCursor")
-      {
+      if (cmd == "fillScreen") {
+        uint16_t color = client.readStringUntil('\n').toInt();
+        tft.fillScreen(color);
+      } else if (cmd == "setCursor") {
         int x = client.readStringUntil('\n').toInt();
         int y = client.readStringUntil('\n').toInt();
         tft.setCursor(x, y);
-      }
-      else if (cmd == "write")
-      {
+      } else if (cmd == "write") {
         String text = client.readStringUntil('\n');
-        tft.setTextColor(ST77XX_WHITE);
         tft.print(text);
+      } else if (cmd == "drawPixel") {
+        int x = client.readStringUntil('\n').toInt();
+        int y = client.readStringUntil('\n').toInt();
+        uint16_t color = client.readStringUntil('\n').toInt();
+        tft.drawPixel(x, y, color);
+      } else if (cmd == "fillRect") {
+        int x = client.readStringUntil('\n').toInt();
+        int y = client.readStringUntil('\n').toInt();
+        int w = client.readStringUntil('\n').toInt();
+        int h = client.readStringUntil('\n').toInt();
+        uint16_t color = client.readStringUntil('\n').toInt();
+        tft.fillRect(x, y, w, h, color);
+      } else if (cmd == "setTextColor") {
+        uint16_t color = client.readStringUntil('\n').toInt();
+        tft.setTextColor(color);
       }
+      // Add more commands here as needed
     }
   }
 
-  void Update()
-  {
+  void Update() {
     if (WiFi.status() != WL_CONNECTED)
       return;
+
     if (appDomain.isEmpty())
       Start();
 
-    if (!onPage)
-    {
+    if (!onPage) {
       Connect();
-    }
-    else
-    {
+    } else {
       HandleInput();
       HandleServerMessages();
     }
+  }
+
+private:
+  void showError(const char* msg) {
+    tft.fillScreen(ST77XX_BLACK);
+    tft.setCursor(0, 0);
+    tft.setTextColor(ST77XX_RED);
+    tft.println(msg);
+  }
+
+  void clearScreen(uint16_t color) {
+    tft.fillScreen(color);
+    tft.setCursor(0, 0);
   }
 };
