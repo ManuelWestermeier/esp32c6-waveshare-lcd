@@ -6,7 +6,8 @@ class Client {
     listeners = new Map();
     onclick = null;
     ondbclick = null;
-    init = null;
+    oninit = null;
+    onrerender = null;
 
     constructor(socket) {
         this.socket = socket;
@@ -86,8 +87,6 @@ class Client {
     }
 
     _handleCommand(cmd) {
-        console.log("cmd", cmd);
-
         if (cmd === "click" && typeof this.onclick === "function") {
             this.onclick();
             return;
@@ -96,8 +95,12 @@ class Client {
             this.ondbclick();
             return;
         }
-        if (cmd === "init" && typeof this.init === "function") {
-            this.init();
+        if (cmd === "init" && typeof this.oninit === "function") {
+            this.oninit();
+            return;
+        }
+        if (cmd === "rerender" && typeof this.onrerender === "function") {
+            this.onrerender();
             return;
         }
 

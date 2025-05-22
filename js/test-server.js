@@ -1,24 +1,28 @@
 import createServer from "./lib/server.js";
 
 createServer((client) => {
-    client.init = () => {
-        client.fillScreen(0);
-        client.setTextColor(50_000);
+    var colors = [0, 50_000, 30_000];
+    var index = 0;
 
-        setTimeout(() => client.setTextColor(3030), 2000)
+    function render() {
+        client.setTextColor((1 << 16) - 1);
+        client.fillScreen(colors[index]);
 
-        client.setCursor(20, 50);
-        client.setTextSize(4);
-        client.printText("Ready.");
+        client.setTextSize(12);
+        client.setCursor(50, 50);
+        client.printText(index + 1);
     }
 
+    client.oninit = render;
+    client.onrerender = render;
+
     client.onclick = () => {
-        client.fillScreen(0x03b1);
-    };
+        if (++index == colors.length) index = 0;
+        render();
+    }
 
     client.ondbclick = () => {
-        client.fillScreen(2577);
-    };
-
-    client.socket.onclose = console.log
+        if (--index == -1) index = colors.length - 1;
+        render();
+    }
 }, 25279);
