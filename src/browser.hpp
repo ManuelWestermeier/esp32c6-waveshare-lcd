@@ -117,8 +117,9 @@ struct Browser {
         }
       } else if (cmd == "ask-select") {
         std::vector<String> options;
-        for (uint8_t index = 0; index < 256 &&; i++) {
+        for (uint8_t index = 0; index < 250; index++) {
           String option = client.readStringUntil('\n');
+          if (option == "::OPTIONS_END::") break;
           options.push_back(option);
         }
         int result = select(options);
