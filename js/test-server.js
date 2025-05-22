@@ -5,8 +5,11 @@ createServer((client) => {
         client.fillScreen(0);
         client.setTextColor(50_000);
 
+        setTimeout(() => client.setTextColor(3030), 2000)
+
+        client.setCursor(20, 50);
         client.setTextSize(4);
-        client.printText("\nReady.");
+        client.printText("Ready.");
     }
 
     client.onclick = () => {

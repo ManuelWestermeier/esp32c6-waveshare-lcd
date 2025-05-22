@@ -52,7 +52,7 @@ struct Browser {
     tft.setCursor(0, 0);
     delay(1000);
 
-    client.println("init\nconnected");
+    client.println("init");
     onPage = true;
     return true;
   }
@@ -62,14 +62,16 @@ struct Browser {
 
     switch (event) {
       case Input::Click:
-        client.println("click\n" + String(millis()));
+        client.println("click");
         break;
       case Input::DoubleClick:
-        client.println("dblclick\n" + String(millis()));
+        client.println("dblclick");
         break;
       case Input::TripleClick:
         if (ok(" Exit App"))
           Start();  // Restart logic
+        else if (client.connected())
+          client.println("rerender");
         break;
       default:
         break;
@@ -115,12 +117,18 @@ struct Browser {
         if (client.connected()) {
           client.println("ask-text-value\n" + value);
         }
+        if (client.connected()) {
+          client.println("rerender");
+        }
       } else if (cmd == "ask-ok") {
         String question = client.readStringUntil('\n');
         String defaultValue = client.readStringUntil('\n');
         bool value = ok(question);
         if (client.connected()) {
           client.println("ask-ok-value\n" + value ? "yes" : "no");
+        }
+        if (client.connected()) {
+          client.println("rerender");
         }
       } else if (cmd == "ask-select") {
         std::vector<String> options;
@@ -132,6 +140,9 @@ struct Browser {
         int result = select(options);
         if (client.connected()) {
           client.println("ask-select-value\n" + String(result));
+        }
+        if (client.connected()) {
+          client.println("rerender");
         }
       }
     }
