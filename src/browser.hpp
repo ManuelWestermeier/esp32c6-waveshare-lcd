@@ -64,7 +64,8 @@ struct Browser {
         client.println("dblclick\n" + String(millis()));
         break;
       case Input::TripleClick:
-        Start();  // Restart logic
+        if (ok(" Exit App"))
+          Start();  // Restart logic
         break;
       default:
         break;
