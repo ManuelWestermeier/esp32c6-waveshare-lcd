@@ -44,10 +44,11 @@ struct Browser {
       return false;
     }
 
-    clearScreen(ST77XX_BLACK);
-    tft.setTextColor(ST77XX_GREEN);
+    clearScreen(UI_BG);
+    tft.setTextColor(UI_Text);
+    tft.setCursor(20, 20);
     tft.println("Connected!");
-
+    tft.setCursor(0, 0);
     delay(1000);
 
     client.println("init\nconnected");
@@ -103,6 +104,9 @@ struct Browser {
       } else if (cmd == "setTextColor") {
         uint16_t color = client.readStringUntil('\n').toInt();
         tft.setTextColor(color);
+      } else if (cmd == "setTextSize") {
+        uint16_t textSize = client.readStringUntil('\n').toInt();
+        tft.setTextSize(textSize);
       } else if (cmd == "ask-text") {
         String question = client.readStringUntil('\n');
         String defaultValue = client.readStringUntil('\n');

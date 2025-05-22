@@ -48,6 +48,10 @@ class Client {
         this.sendCommand("setTextColor", color);
     }
 
+    setTextSize(size) {
+        this.sendCommand("setTextSize", size);
+    }
+
     async askText(question, def = "") {
         this.sendCommand("ask-text", question, def);
         return await this._waitFor("ask-text-value");
