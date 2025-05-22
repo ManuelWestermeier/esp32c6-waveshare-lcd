@@ -56,7 +56,9 @@ class Client {
 
     async askText(question, def = "") {
         this.sendCommand("ask-text", question, def);
-        return await this._waitFor("ask-text-value");
+        return input
+            .replace(/\\\\/g, "\\")  // Unescape backslashes
+            .replace(/\\n/g, "\n");  // Convert escaped \n to real newline
     }
 
     async askOk(question, def = "") {

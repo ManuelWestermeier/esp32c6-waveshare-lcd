@@ -113,7 +113,11 @@ struct Browser {
       } else if (cmd == "ask-text") {
         String question = client.readStringUntil('\n');
         String defaultValue = client.readStringUntil('\n');
+
         String value = ask(question, defaultValue);
+        value.replace("\\", "\\\\");
+        value.replace("\n", "\\n");
+
         if (client.connected()) {
           client.println("ask-text-value\n" + value);
         }

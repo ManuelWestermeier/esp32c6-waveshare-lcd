@@ -1,7 +1,7 @@
 import createServer from "./lib/server.js";
 
 createServer((client) => {
-    var colors = [0, 50_000, 30_000];
+    var colors = [];
     var index = 0;
 
     function render() {
@@ -21,8 +21,7 @@ createServer((client) => {
         render();
     }
 
-    client.ondbclick = () => {
-        if (--index == -1) index = colors.length - 1;
-        render();
+    client.ondbclick = async () => {
+        client.fillScreen(parseInt(await client.askText("color")))
     }
 }, 25279);
