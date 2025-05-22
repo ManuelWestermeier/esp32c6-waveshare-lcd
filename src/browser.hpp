@@ -64,6 +64,9 @@ struct Browser {
       case Input::Click:
         client.println("click");
         break;
+      case Input::LongPress:
+        client.println("longclick");
+        break;
       case Input::DoubleClick:
         client.println("dblclick");
         break;

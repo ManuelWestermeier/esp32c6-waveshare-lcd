@@ -8,6 +8,7 @@ class Client {
     ondbclick = null;
     oninit = null;
     onrerender = null;
+    onlongclick = null;
 
     constructor(socket) {
         this.socket = socket;
@@ -56,7 +57,7 @@ class Client {
 
     async askText(question, def = "") {
         this.sendCommand("ask-text", question, def);
-        return input
+        return (await this._waitFor("ask-text-value"))
             .replace(/\\\\/g, "\\")  // Unescape backslashes
             .replace(/\\n/g, "\n");  // Convert escaped \n to real newline
     }
@@ -103,6 +104,10 @@ class Client {
         }
         if (cmd === "rerender" && typeof this.onrerender === "function") {
             this.onrerender();
+            return;
+        }
+        if (cmd === "longclick" && typeof this.onlongclick === "function") {
+            this.onlongclick();
             return;
         }
 
