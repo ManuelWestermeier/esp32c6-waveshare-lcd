@@ -1,18 +1,21 @@
 import createServer from "./lib/server.js";
 
 createServer((client) => {
-    client.fillScreen(0x03b1);
-    client.setTextColor(0xe7bf);
+    client.init = () => {
+        client.fillScreen(0);
+        client.setTextColor(50_000);
 
-    client.setCursor(100, 100);
-    client.setTextSize(4);
-    client.printText("Ready.");
+        client.setTextSize(4);
+        client.printText("\nReady.");
+    }
 
-    client.onclick = async () => {
+    client.onclick = () => {
         client.fillScreen(0x03b1);
     };
 
-    client.ondbclick = async () => {
+    client.ondbclick = () => {
         client.fillScreen(2577);
     };
+
+    client.socket.onclose = console.log
 }, 25279);

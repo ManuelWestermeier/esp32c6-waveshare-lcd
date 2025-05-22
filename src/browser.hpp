@@ -45,6 +45,7 @@ struct Browser {
     }
 
     clearScreen(UI_BG);
+    tft.setTextSize(2);
     tft.setTextColor(UI_Text);
     tft.setCursor(20, 20);
     tft.println("Connected!");
@@ -142,6 +143,17 @@ struct Browser {
 
     if (appDomain.isEmpty())
       Start();
+
+    if (!client.connected()) {
+      clearScreen(UI_BG);
+      tft.setTextColor(UI_Text);
+      tft.setTextSize(2);
+      tft.setCursor(20, 20);
+      tft.println("Ofline!");
+      tft.setCursor(0, 0);
+      delay(1000);
+      Start();
+    }
 
     if (!onPage) {
       Connect();

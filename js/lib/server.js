@@ -6,6 +6,7 @@ class Client {
     listeners = new Map();
     onclick = null;
     ondbclick = null;
+    init = null;
 
     constructor(socket) {
         this.socket = socket;
@@ -91,6 +92,10 @@ class Client {
         }
         if (cmd === "dblclick" && typeof this.ondbclick === "function") {
             this.ondbclick();
+            return;
+        }
+        if (cmd === "init" && typeof this.init === "function") {
+            this.init();
             return;
         }
 
