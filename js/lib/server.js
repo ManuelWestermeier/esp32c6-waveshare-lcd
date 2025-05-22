@@ -38,6 +38,9 @@ class Client {
   printText(text) {
     this.sendCommand("write", text);
   }
+  print(text) {
+    this.sendCommand("write", text);
+  }
 
   drawPixel(x, y, color) {
     this.sendCommand("drawPixel", x, y, color);
@@ -57,8 +60,7 @@ class Client {
 
   async askText(question, _defautl = "") {
     this.sendCommand("ask-text", question, _defautl);
-    return (await this._waitFor("ask-text-value"))
-      .replace(/\\n/g, "\n"); // Convert escaped \n to real newline
+    return (await this._waitFor("ask-text-value")).replaceAll("\\n", "\n"); // Convert escaped \n to real newline
   }
 
   async askOk(question) {
