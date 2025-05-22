@@ -101,8 +101,31 @@ struct Browser {
       } else if (cmd == "setTextColor") {
         uint16_t color = client.readStringUntil('\n').toInt();
         tft.setTextColor(color);
+      } else if (cmd == "ask-text") {
+        String question = client.readStringUntil('\n');
+        String defaultValue = client.readStringUntil('\n');
+        String value = ask(question, defaultValue);
+        if (client.connected()) {
+          client.println("ask-text-value\n" + value);
+        }
+      } else if (cmd == "ask-ok") {
+        String question = client.readStringUntil('\n');
+        String defaultValue = client.readStringUntil('\n');
+        bool value = ok(question);
+        if (client.connected()) {
+          client.println("ask-ok-value\n" + value ? "yes" : "no");
+        }
+      } else if (cmd == "ask-select") {
+        std::vector<String> options;
+        for (uint8_t index = 0; index < 256 &&; i++) {
+          String option = client.readStringUntil('\n');
+          options.push_back(option);
+        }
+        int result = select(options);
+        if (client.connected()) {
+          client.println("ask-select-value\n" + String(result));
+        }
       }
-      // Add more commands here as needed
     }
   }
 
