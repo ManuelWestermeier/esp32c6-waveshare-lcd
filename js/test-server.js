@@ -7,10 +7,7 @@ createServer((client) => {
     client.printText("Ready.");
 
     client.onclick = async () => {
-        const name = await client.askText("Your name?", "Anonymous");
-        client.fillScreen(0x0000);
-        client.setCursor(0, 0);
-        client.printText("Hi " + name);
+        client.fillScreen(0x03b1);
     };
 
     client.ondbclick = async () => {

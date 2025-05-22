@@ -48,7 +48,9 @@ struct Browser {
     tft.setTextColor(ST77XX_GREEN);
     tft.println("Connected!");
 
-    client.println("init\nconnected");  // NO USERNAME SENT
+    delay(1000);
+
+    client.println("init\nconnected");
     onPage = true;
     return true;
   }
