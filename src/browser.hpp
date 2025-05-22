@@ -132,7 +132,7 @@ struct Browser {
         String defaultValue = client.readStringUntil('\n');
         bool value = ok(question);
         if (client.connected()) {
-          client.println("ask-ok-value\n" + value ? "yes" : "no");
+          client.println("ask-ok-value\n" + (value ? "yes" : "no"));
         }
         if (client.connected()) {
           client.println("rerender");
