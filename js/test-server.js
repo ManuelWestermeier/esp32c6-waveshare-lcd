@@ -5,23 +5,24 @@ createServer((client) => {
     var index = 0;
 
     function render() {
-        client.setTextColor((1 << 16) - 1);
-        client.fillScreen(colors[index]);
-
-        client.setTextSize(15);
-        client.setCursor(50, 100);
-        client.printText(index + 1);
+        client.fillScreen(0);
+        client.setTextColor(50000);
+        client.setCursor(10, 10);
+        client.setTextSize(2);
     }
 
     client.oninit = render;
     client.onrerender = render;
 
-    client.onclick = () => {
-        if (++index == colors.length) index = 0;
-        render();
+    client.onclick = async () => {
+        console.log(await client.askOk("Niggy?"));
     }
 
     client.ondbclick = async () => {
-        client.fillScreen(parseInt(await client.askText("color")))
+        console.log(await client.askSelect(["1", "2", "3", "4"]));
+    }
+
+    client.onlongclick = async () => {
+        console.log(await client.askText("Hi?"));
     }
 }, 25279);

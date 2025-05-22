@@ -62,13 +62,14 @@ class Client {
             .replace(/\\n/g, "\n");  // Convert escaped \n to real newline
     }
 
-    async askOk(question, def = "") {
-        this.sendCommand("ask-ok", question, def);
+    async askOk(question) {
+        this.sendCommand("ask-ok", question);
         return (await this._waitFor("ask-ok-value")) === "yes";
     }
 
     async askSelect(options) {
-        options.forEach((opt) => this.sendCommand("ask-select", opt));
+        this.sendCommand("ask-select");
+        options.forEach((opt) => this.sendCommand(opt));
         this.sendCommand("ask-select", "::OPTIONS_END::");
         return parseInt(await this._waitFor("ask-select-value"), 10);
     }

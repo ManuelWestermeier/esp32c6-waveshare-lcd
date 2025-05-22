@@ -167,7 +167,7 @@ struct Browser {
       tft.setTextColor(UI_Text);
       tft.setTextSize(2);
       tft.setCursor(20, 20);
-      tft.println("Ofline!");
+      tft.println("Offline!");
       tft.setCursor(0, 0);
       delay(1000);
       Start();
