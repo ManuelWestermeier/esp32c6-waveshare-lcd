@@ -1,76 +1,116 @@
 import net from "net";
 
-export default function createServer(handler, port = 25279) {
-    const server = net.createServer((socket) => {
+class Client {
+    socket;
+    buffer = "";
+    listeners = new Map();
+    onclick = null;
+    ondbclick = null;
+
+    constructor(socket) {
+        this.socket = socket;
         socket.setEncoding("utf-8");
-        let buffer = "";
-        const listeners = {};
-        const sock = {
-            onclick: null,
-            ondbclick: null,
-            sendCommand: (cmd, ...args) => {
-                socket.write(cmd + "\n" + args.join("\n") + "\n");
-            },
-            fillScreen: (color) => sock.sendCommand("fillScreen", color),
-            setCursor: (x, y) => sock.sendCommand("setCursor", x, y),
-            printText: (text) => sock.sendCommand("write", text),
-            drawPixel: (x, y, color) => sock.sendCommand("drawPixel", x, y, color),
-            fillRect: (x, y, w, h, color) => sock.sendCommand("fillRect", x, y, w, h, color),
-            setTextColor: (color) => sock.sendCommand("setTextColor", color),
-            askText: async (question, def = "") => {
-                sock.sendCommand("ask-text", question, def);
-                return await waitFor("ask-text-value");
-            },
-            askOk: async (question, def = "") => {
-                sock.sendCommand("ask-ok", question, def);
-                return (await waitFor("ask-ok-value")) === "yes";
-            },
-            askSelect: async (options) => {
-                options.forEach(opt => sock.sendCommand("ask-select", opt));
-                sock.sendCommand("ask-select", "::OPTIONS_END::");
-                return parseInt(await waitFor("ask-select-value"), 10);
-            }
-        };
 
-        function waitFor(cmd) {
-            return new Promise(resolve => {
-                listeners[cmd] = resolve;
-            });
-        }
-
-        socket.on("data", (chunk) => {
-            buffer += chunk;
-            let idx;
-            while ((idx = buffer.indexOf("\n")) !== -1) {
-                const line = buffer.slice(0, idx).trim();
-                buffer = buffer.slice(idx + 1);
-
-                handleCommand(line);
-            }
-        });
-
-        function handleCommand(cmd) {
-            if (cmd === "click" && typeof sock.onclick === "function") {
-                sock.onclick();
-            } if (cmd === "dblclick" && typeof sock.onclick === "function") {
-                sock.ondbclick();
-            } else if (listeners[cmd]) {
-                waitBuffer = "";
-                const resolve = listeners[cmd];
-                delete listeners[cmd];
-                let idx = buffer.indexOf("\n");
-                if (idx === -1) return; // wait for full value
-                const val = buffer.slice(0, idx).trim();
-                buffer = buffer.slice(idx + 1);
-                resolve(val);
-            }
-        }
-
+        socket.on("data", (chunk) => this._onData(chunk));
         socket.on("error", () => { });
         socket.on("close", () => { });
 
-        // Initial call for user-defined logic
-        handler(sock);
+        // Bind event handlers so `this` works correctly
+        this._onData = this._onData.bind(this);
+        this._handleCommand = this._handleCommand.bind(this);
+    }
+
+    sendCommand(cmd, ...args) {
+        this.socket.write(cmd + "\n" + args.join("\n") + "\n");
+    }
+
+    fillScreen(color) {
+        this.sendCommand("fillScreen", color);
+    }
+
+    setCursor(x, y) {
+        this.sendCommand("setCursor", x, y);
+    }
+
+    printText(text) {
+        this.sendCommand("write", text);
+    }
+
+    drawPixel(x, y, color) {
+        this.sendCommand("drawPixel", x, y, color);
+    }
+
+    fillRect(x, y, w, h, color) {
+        this.sendCommand("fillRect", x, y, w, h, color);
+    }
+
+    setTextColor(color) {
+        this.sendCommand("setTextColor", color);
+    }
+
+    async askText(question, def = "") {
+        this.sendCommand("ask-text", question, def);
+        return await this._waitFor("ask-text-value");
+    }
+
+    async askOk(question, def = "") {
+        this.sendCommand("ask-ok", question, def);
+        return (await this._waitFor("ask-ok-value")) === "yes";
+    }
+
+    async askSelect(options) {
+        options.forEach((opt) => this.sendCommand("ask-select", opt));
+        this.sendCommand("ask-select", "::OPTIONS_END::");
+        return parseInt(await this._waitFor("ask-select-value"), 10);
+    }
+
+    _waitFor(cmd) {
+        return new Promise((resolve) => {
+            this.listeners.set(cmd, resolve);
+        });
+    }
+
+    _onData(chunk) {
+        this.buffer += chunk;
+        let idx;
+        while ((idx = this.buffer.indexOf("\n")) !== -1) {
+            const line = this.buffer.slice(0, idx).trim();
+            this.buffer = this.buffer.slice(idx + 1);
+            this._handleCommand(line);
+        }
+    }
+
+    _handleCommand(cmd) {
+        if (cmd === "click" && typeof this.onclick === "function") {
+            this.onclick();
+            return;
+        }
+        if (cmd === "dblclick" && typeof this.ondbclick === "function") {
+            this.ondbclick();
+            return;
+        }
+
+        if (this.listeners.has(cmd)) {
+            // The next line after cmd is the value for the promise
+            const idx = this.buffer.indexOf("\n");
+            if (idx === -1) {
+                // Wait for more data
+                return;
+            }
+            const val = this.buffer.slice(0, idx).trim();
+            this.buffer = this.buffer.slice(idx + 1);
+
+            const resolve = this.listeners.get(cmd);
+            this.listeners.delete(cmd);
+            resolve(val);
+        }
+    }
+}
+
+export default function createServer(handler = ((client = new Client()) => null), port = 25279) {
+    const server = net.createServer((socket) => {
+        const client = new Client(socket);
+        handler(client);
     });
 
     server.listen(port, () => { });
