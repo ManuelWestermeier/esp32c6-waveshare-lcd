@@ -8,8 +8,8 @@ createServer((client) => {
         client.setTextColor((1 << 16) - 1);
         client.fillScreen(colors[index]);
 
-        client.setTextSize(12);
-        client.setCursor(50, 50);
+        client.setTextSize(15);
+        client.setCursor(50, 100);
         client.printText(index + 1);
     }
 
