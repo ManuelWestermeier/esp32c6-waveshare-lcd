@@ -94,8 +94,6 @@ class Client {
   }
 
   _handleCommand(cmd) {
-    console.log(cmd);
-
     if (cmd === "click" && typeof this.onclick === "function") {
       this.onclick();
       return;
