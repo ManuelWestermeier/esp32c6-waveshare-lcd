@@ -25,7 +25,8 @@ struct Browser {
   WiFiClient client;
 
   void Start() {
-    appDomain = "hg2z.duckdns.org:25279";
+    // appDomain = "hg2z.duckdns.org:25279";
+    appDomain = "192.168.178.33:25279";
     onPage = false;
   }
 
@@ -118,7 +119,6 @@ struct Browser {
         String defaultValue = client.readStringUntil('\n');
 
         String value = ask(question, defaultValue);
-        value.replace("\\", "\\\\");
         value.replace("\n", "\\n");
 
         if (client.connected()) {
@@ -141,7 +141,8 @@ struct Browser {
         std::vector<String> options;
         for (uint8_t index = 0; index < 250; index++) {
           String option = client.readStringUntil('\n');
-          if (option == "::OPTIONS_END::") break;
+          if (option == "::OPTIONS_END::")
+            break;
           options.push_back(option);
         }
         int result = select(options);
@@ -182,7 +183,7 @@ struct Browser {
   }
 
 private:
-  void showError(const char* msg) {
+  void showError(const char *msg) {
     tft.fillScreen(ST77XX_BLACK);
     tft.setCursor(0, 0);
     tft.setTextColor(ST77XX_RED);
