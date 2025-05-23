@@ -61,7 +61,6 @@ struct Browser {
 
   void HandleInput() {
     auto event = Input::getLastEvent();
-
     switch (event) {
       case Input::Click:
         client.println("click");
@@ -74,7 +73,7 @@ struct Browser {
         break;
       case Input::TripleClick:
         if (ok(" Exit App"))
-          Start();  // Restart logic
+          Start();
         else if (client.connected())
           client.println("rerender");
         break;
@@ -113,46 +112,37 @@ struct Browser {
         uint16_t color = client.readStringUntil('\n').toInt();
         tft.setTextColor(color);
       } else if (cmd == "setTextSize") {
-        uint16_t textSize = client.readStringUntil('\n').toInt();
-        tft.setTextSize(textSize);
+        uint16_t size = client.readStringUntil('\n').toInt();
+        tft.setTextSize(size);
       } else if (cmd == "ask-text") {
         String question = client.readStringUntil('\n');
         String defaultValue = client.readStringUntil('\n');
-
         String value = ask(question, defaultValue);
         value.replace("\n", "\\n");
-
-        if (client.connected()) {
+        if (client.connected())
           client.println("ask-text-value\n" + value);
-        }
-        if (client.connected()) {
+        if (client.connected())
           client.println("rerender");
-        }
       } else if (cmd == "ask-ok") {
         String question = client.readStringUntil('\n');
-        String defaultValue = client.readStringUntil('\n');
         bool value = ok(question);
-        if (client.connected()) {
+        if (client.connected())
           client.println(String("ask-ok-value\n") + (value ? "yes" : "no"));
-        }
-        if (client.connected()) {
+        if (client.connected())
           client.println("rerender");
-        }
       } else if (cmd == "ask-select") {
         std::vector<String> options;
-        for (uint8_t index = 0; index < 250; index++) {
+        for (uint8_t i = 0; i < 250; i++) {
           String option = client.readStringUntil('\n');
           if (option == "::OPTIONS_END::")
             break;
           options.push_back(option);
         }
         int result = select(options);
-        if (client.connected()) {
+        if (client.connected())
           client.println("ask-select-value\n" + String(result));
-        }
-        if (client.connected()) {
+        if (client.connected())
           client.println("rerender");
-        }
       }
     }
   }
@@ -160,7 +150,7 @@ struct Browser {
   void Update() {
     if (WiFi.status() != WL_CONNECTED)
       return;
-
+      
     if (appDomain.isEmpty())
       return Start();
 

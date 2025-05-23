@@ -18,7 +18,6 @@ class Client {
     socket.on("error", () => {});
     socket.on("close", () => {});
 
-    // Bind event handlers so `this` works correctly
     this._onData = this._onData.bind(this);
     this._handleCommand = this._handleCommand.bind(this);
   }
@@ -35,9 +34,6 @@ class Client {
     this.sendCommand("setCursor", x, y);
   }
 
-  printText(text) {
-    this.sendCommand("write", text);
-  }
   print(text) {
     this.sendCommand("write", text);
   }
@@ -58,9 +54,9 @@ class Client {
     this.sendCommand("setTextSize", size);
   }
 
-  async askText(question, _defautl = "") {
-    this.sendCommand("ask-text", question, _defautl);
-    return (await this._waitFor("ask-text-value")).replaceAll("\\n", "\n"); // Convert escaped \n to real newline
+  async askText(question, defaultValue = "") {
+    this.sendCommand("ask-text", question, defaultValue);
+    return (await this._waitFor("ask-text-value")).replaceAll("\\n", "\n");
   }
 
   async askOk(question) {
@@ -69,11 +65,7 @@ class Client {
   }
 
   async askSelect(options) {
-    this.sendCommand(
-      "ask-select",
-      options.map((o) => o.replaceAll("\n", "\n")).join("\n"),
-      "::OPTIONS_END::"
-    );
+    this.sendCommand("ask-select", options.join("\n"), "::OPTIONS_END::");
     return parseInt(await this._waitFor("ask-select-value"), 10);
   }
 
@@ -95,7 +87,6 @@ class Client {
 
   _handleCommand(cmd) {
     console.log("cmd", cmd);
-
     if (cmd === "click" && typeof this.onclick === "function") {
       this.onclick();
       return;
@@ -118,12 +109,8 @@ class Client {
     }
 
     if (this.listeners.has(cmd)) {
-      // The next line after cmd is the value for the promise
       const idx = this.buffer.indexOf("\n");
-      if (idx === -1) {
-        // Wait for more data
-        return;
-      }
+      if (idx === -1) return;
       const val = this.buffer.slice(0, idx).trim();
       this.buffer = this.buffer.slice(idx + 1);
 
@@ -143,7 +130,7 @@ export default function createServer(
     handler(client);
   });
 
-  server.listen(port, () => {});
+  server.listen(port);
 
   return server;
 }

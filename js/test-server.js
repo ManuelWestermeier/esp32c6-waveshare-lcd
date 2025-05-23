@@ -1,7 +1,7 @@
 import axios from "axios";
 import createServer from "./lib/server.js";
 
-async function querry(search) {
+async function query(search) {
   try {
     const response = await axios.get("https://api.duckduckgo.com/", {
       params: {
@@ -24,24 +24,22 @@ async function querry(search) {
 }
 
 createServer(async (client) => {
-  console.log("x", await client.askText("Search...", ""));
-
   let search = "";
-  let output = "nothing yet...";
+  let output = "Click to Search...";
 
   function render() {
     client.fillScreen(0);
-    client.setTextColor((1 << 16) - 1);
+    client.setTextColor(0xffff);
 
     if (!search || !output) {
       client.setTextSize(1);
       client.setCursor(30, 4);
       client.print("Click to Search...");
+    } else {
+      client.setTextSize(2);
+      client.setCursor(0, 13);
+      client.print(` ${search}\n ${output.replaceAll("\n", "\n ")}`);
     }
-
-    client.setTextSize(2);
-    client.setCursor(0, 13);
-    client.print(` ${search}\n ${output.replaceAll("\n", "\n ")}`);
   }
 
   client.onrerender = render;
@@ -49,11 +47,9 @@ createServer(async (client) => {
 
   client.onclick = async () => {
     search = await client.askText("Search...", search);
-
     output = "Searching...";
     render();
-
-    output = await querry(search);
+    output = await query(search);
     render();
   };
 }, 25279);
