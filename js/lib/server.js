@@ -15,8 +15,8 @@ class Client {
     socket.setEncoding("utf-8");
 
     socket.on("data", (chunk) => this._onData(chunk));
-    socket.on("error", () => { });
-    socket.on("close", () => { });
+    socket.on("error", () => {});
+    socket.on("close", () => {});
 
     // Bind event handlers so `this` works correctly
     this._onData = this._onData.bind(this);
@@ -94,6 +94,8 @@ class Client {
   }
 
   _handleCommand(cmd) {
+    console.log("cmd", cmd);
+
     if (cmd === "click" && typeof this.onclick === "function") {
       this.onclick();
       return;
@@ -141,7 +143,7 @@ export default function createServer(
     handler(client);
   });
 
-  server.listen(port, () => { });
+  server.listen(port, () => {});
 
   return server;
 }
