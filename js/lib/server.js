@@ -77,6 +77,7 @@ class Client {
 
   _onData(chunk) {
     this.buffer += chunk;
+
     let idx;
     while ((idx = this.buffer.indexOf("\n")) !== -1) {
       const line = this.buffer.slice(0, idx).trim();
@@ -86,7 +87,8 @@ class Client {
   }
 
   _handleCommand(cmd) {
-    console.log("cmd", cmd);
+    console.log("cmd", JSON.stringify(cmd));
+
     if (cmd === "click" && typeof this.onclick === "function") {
       this.onclick();
       return;
