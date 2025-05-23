@@ -26,7 +26,8 @@ struct Browser {
 
   void Start() {
     // appDomain = "hg2z.duckdns.org:25279";
-    appDomain = "192.168.178.33:25279";
+    // appDomain = "192.168.178.33:25279";
+    appDomain = "172.22.79.9:25279";
     onPage = false;
   }
 
@@ -161,7 +162,7 @@ struct Browser {
       return;
 
     if (appDomain.isEmpty())
-      Start();
+      return Start();
 
     if (!client.connected()) {
       clearScreen(UI_BG);
@@ -171,7 +172,7 @@ struct Browser {
       tft.println("Offline!");
       tft.setCursor(0, 0);
       delay(1000);
-      Start();
+      return Start();
     }
 
     if (!onPage) {

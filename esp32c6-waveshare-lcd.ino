@@ -9,8 +9,8 @@
 #include "src/init-screen.hpp"
 #include "src/browser.hpp"
 
-// #define USE_INIT_SCREEN
-// #define USE_AUTH
+#define USE_INIT_SCREEN
+#define USE_AUTH
 
 Browser browser;
 
@@ -27,9 +27,14 @@ void setup()
   browser.credentials = {"h", "h", "aaa9402664f1a41f40ebbc52c9993eb66aeb366602958fdfaa283b71e64db123", "aaa9402664f1a41f40ebbc52c9993eb66aeb366602958fdfaa283b71e64db123"};
   WiFi.begin(DEBUG_WIFI_SSID, DEBUG_WIFI_PASSWORD);
 
+  tft.setCursor(10, 10);
+  tft.println("Connecting...");
+  tft.println(DEBUG_WIFI_SSID);
+
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(500);
+    tft.print(".");
   }
 #endif
   browser.Start();
