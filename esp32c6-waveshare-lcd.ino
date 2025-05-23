@@ -9,8 +9,8 @@
 #include "src/init-screen.hpp"
 #include "src/browser.hpp"
 
-#define USE_INIT_SCREEN
-#define USE_AUTH
+// #define USE_INIT_SCREEN
+// #define USE_AUTH
 
 Browser browser;
 
