@@ -111,14 +111,20 @@ class Client {
     }
 
     if (this.listeners.has(cmd)) {
-      const idx = this.buffer.indexOf("\n");
-      if (idx === -1) return;
-      const val = this.buffer.slice(0, idx).trim();
-      this.buffer = this.buffer.slice(idx + 1);
+      if (this.buffer.indexOf("\n") === -1) {
+        // Wait for more data
+        this.buffer = cmd + "\n" + this.buffer; // Restore cmd for later
+        return;
+      }
+
+      const valIdx = this.buffer.indexOf("\n");
+      const val = this.buffer.slice(0, valIdx).trim();
+      this.buffer = this.buffer.slice(valIdx + 1);
 
       const resolve = this.listeners.get(cmd);
       this.listeners.delete(cmd);
       resolve(val);
+      return;
     }
   }
 }
