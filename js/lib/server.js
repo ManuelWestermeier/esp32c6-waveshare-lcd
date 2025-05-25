@@ -78,17 +78,35 @@ class Client {
   _onData(chunk) {
     this.buffer += chunk;
 
-    let idx;
-    while ((idx = this.buffer.indexOf("\n")) !== -1) {
-      const line = this.buffer.slice(0, idx).trim();
-      this.buffer = this.buffer.slice(idx + 1);
-      this._handleCommand(line);
+    while (true) {
+      const newlineIdx = this.buffer.indexOf("\n");
+      if (newlineIdx === -1) break;
+
+      const line = this.buffer.slice(0, newlineIdx).trim();
+      this.buffer = this.buffer.slice(newlineIdx + 1);
+
+      // Handle two-line responses like "ask-text-value\nvalue\n"
+      if (this.listeners.has(line)) {
+        const secondNewlineIdx = this.buffer.indexOf("\n");
+        if (secondNewlineIdx === -1) {
+          // Wait for the full value to arrive
+          this.buffer = line + "\n" + this.buffer;
+          break;
+        }
+
+        const val = this.buffer.slice(0, secondNewlineIdx).trim();
+        this.buffer = this.buffer.slice(secondNewlineIdx + 1);
+
+        const resolve = this.listeners.get(line);
+        this.listeners.delete(line);
+        resolve(val);
+      } else {
+        this._handleCommand(line);
+      }
     }
   }
 
   _handleCommand(cmd) {
-    // console.log("cmd", JSON.stringify(cmd));
-
     if (cmd === "click" && typeof this.onclick === "function") {
       this.onclick();
       return;
@@ -107,24 +125,6 @@ class Client {
     }
     if (cmd === "longclick" && typeof this.onlongclick === "function") {
       this.onlongclick();
-      return;
-    }
-
-    if (this.listeners.has(cmd)) {
-      const valIdx = this.buffer.indexOf("\n");
-
-      if (valIdx === -1) {
-        // Wait for more data
-        this.buffer = cmd + "\n" + this.buffer; // Restore cmd for later
-        return;
-      }
-
-      const val = this.buffer.slice(0, valIdx).trim();
-      this.buffer = this.buffer.slice(valIdx + 1);
-
-      const resolve = this.listeners.get(cmd);
-      this.listeners.delete(cmd);
-      resolve(val);
       return;
     }
   }
