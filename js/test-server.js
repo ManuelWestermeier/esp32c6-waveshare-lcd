@@ -44,8 +44,19 @@ createServer(async (client) => {
   let output = "Nothing yet...";
   let kl = "de-de"; // default language
 
+  let textView = false;
+  let textViewIndex = 0;
+
   function render() {
     client.fillScreen(0);
+
+    if (textView) {
+      client.setTextColor(50000);
+      client.setCursor(0, 10);
+      client.setTextSize(1);
+      client.printText(output, " ");
+      return;
+    }
 
     client.setTextColor(30000);
     client.setTextSize(1);
@@ -54,7 +65,7 @@ createServer(async (client) => {
 
     client.setTextColor(50000);
     client.setTextSize(2);
-    client.setCursor(0, 18);
+    client.setCursor(0, 20);
     client.printText(`${search ? search + "?" : ""}\n\n${output}`, "");
   }
 
@@ -69,13 +80,29 @@ createServer(async (client) => {
   };
 
   client.ondbclick = async () => {
-    const langNames = Object.keys(languages);
-    const selectedIndex = await client.askSelect(langNames);
-    kl = languages[langNames[selectedIndex]] || "en-us";
-    render();
+    const options = ["Change Language", "View All Text", "View Search"];
+    const option = await client.askSelect(options);
+    if (option == -1) return;
+    else if (option == options.indexOf("Change Language")) {
+      const langNames = Object.keys(languages);
+      const selectedIndex = await client.askSelect(langNames);
+      kl = languages[langNames[selectedIndex]] || "en-us";
+      render();
+    } else if (option == options.indexOf("View All Text")) {
+      textView = true;
+      render();
+    } else if (option == "View Search") {
+      textView = false;
+      render();
+    }
   };
 
   client.onclick = async () => {
+    if (textView) {
+      textViewIndex++;
+      return render();
+    }
+
     search = await client.askText("Search...", search);
     if (!search) return;
 
