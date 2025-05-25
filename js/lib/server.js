@@ -87,7 +87,7 @@ class Client {
   }
 
   _handleCommand(cmd) {
-    console.log("cmd", JSON.stringify(cmd));
+    // console.log("cmd", JSON.stringify(cmd));
 
     if (cmd === "click" && typeof this.onclick === "function") {
       this.onclick();
@@ -111,13 +111,14 @@ class Client {
     }
 
     if (this.listeners.has(cmd)) {
-      if (this.buffer.indexOf("\n") === -1) {
+      const valIdx = this.buffer.indexOf("\n");
+
+      if (valIdx === -1) {
         // Wait for more data
         this.buffer = cmd + "\n" + this.buffer; // Restore cmd for later
         return;
       }
 
-      const valIdx = this.buffer.indexOf("\n");
       const val = this.buffer.slice(0, valIdx).trim();
       this.buffer = this.buffer.slice(valIdx + 1);
 
