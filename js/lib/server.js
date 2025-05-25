@@ -38,6 +38,16 @@ class Client {
     this.sendCommand("write", text);
   }
 
+  println(text) {
+    this.sendCommand("println", text);
+  }
+
+  printText(text, offsetChar = "") {
+    text
+      .split("\n")
+      .forEach((t) => this.sendCommand("println", offsetChar + t));
+  }
+
   drawPixel(x, y, color) {
     this.sendCommand("drawPixel", x, y, color);
   }

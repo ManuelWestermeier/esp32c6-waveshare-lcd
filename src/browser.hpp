@@ -96,6 +96,9 @@ struct Browser {
       } else if (cmd == "write") {
         String text = client.readStringUntil('\n');
         tft.print(text);
+      } else if (cmd == "println") {
+        String text = client.readStringUntil('\n');
+        tft.println(text);
       } else if (cmd == "drawPixel") {
         int x = client.readStringUntil('\n').toInt();
         int y = client.readStringUntil('\n').toInt();
@@ -150,7 +153,7 @@ struct Browser {
   void Update() {
     if (WiFi.status() != WL_CONNECTED)
       return;
-      
+
     if (appDomain.isEmpty())
       return Start();
 

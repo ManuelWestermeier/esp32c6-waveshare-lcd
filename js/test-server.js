@@ -32,14 +32,12 @@ createServer(async (client) => {
     client.setTextColor(0xffff);
 
     client.setTextSize(1);
-    client.setCursor(30, 4);
-    client.print("Click to Search...");
+    client.setCursor(30, 8);
+    client.print(search ? "LongPress to Delete..." : "Click to Search...");
 
     client.setTextSize(2);
-    client.setCursor(0, 13);
-    client.print(` ${search.slice(0, 50)}`);
-    client.setCursor(0, 13);
-    client.print(` ${search.slice(0, 50)}`);
+    client.setCursor(0, 18);
+    client.printText(`${search ? search + "?" : ""}\n \n${output}`, "");
   }
 
   client.onrerender = render;
@@ -49,7 +47,7 @@ createServer(async (client) => {
     search = await client.askText("Search...", search);
     output = "Searching...";
     render();
-    output = (await query(search)).replaceAll(/\ng/, " ");
+    output = (await query(search)).replaceAll("\n", " ");
     render();
   };
 }, 25279);
