@@ -46,12 +46,13 @@ createServer(async (client) => {
 
   function render() {
     client.fillScreen(0);
-    client.setTextColor(0xffff);
 
+    client.setTextColor(30000);
     client.setTextSize(1);
     client.setCursor(30, 8);
     client.print(search ? "LongPress to Delete..." : "Click to Search...");
 
+    client.setTextColor(50000);
     client.setTextSize(2);
     client.setCursor(0, 18);
     client.printText(`${search ? search + "?" : ""}\n\n${output}`, "");
@@ -59,7 +60,15 @@ createServer(async (client) => {
 
   client.onrerender = render;
 
-  client.oninit = async () => {
+  client.oninit = render;
+
+  client.onlongclick = () => {
+    search = "";
+    output = "Nothing yet...";
+    render();
+  };
+
+  client.ondbclick = async () => {
     const langNames = Object.keys(languages);
     const selectedIndex = await client.askSelect(langNames);
     kl = languages[langNames[selectedIndex]] || "en-us";
