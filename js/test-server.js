@@ -39,13 +39,10 @@ async function query(search, kl) {
   }
 }
 
-// Example CLI run
-query("progrom", "de-de").then(console.log);
-
 createServer(async (client) => {
   let search = "";
   let output = "Nothing yet...";
-  let kl = "en-us"; // default language
+  let kl = "de-de"; // default language
 
   function render() {
     client.fillScreen(0);
@@ -60,7 +57,7 @@ createServer(async (client) => {
     client.printText(`${search ? search + "?" : ""}\n\n${output}`, "");
   }
 
-  client.onrender = render;
+  client.onrerender = render;
 
   client.oninit = async () => {
     const langNames = Object.keys(languages);
