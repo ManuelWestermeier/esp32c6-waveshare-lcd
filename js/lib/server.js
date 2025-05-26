@@ -82,13 +82,13 @@ class Client {
   async storeSet(key, value) {
     this.sendCommand(
       "set-storage-key",
-      key,
+      Buffer.from(key).toString("base64url"),
       Buffer.from(value).toString("base64url")
     );
   }
 
   async storeGet(key) {
-    this.sendCommand("get-storage-key", key);
+    this.sendCommand("get-storage-key", Buffer.from(key).toString("base64url"));
     const value = await this._waitFor("return-storage-key");
     if (value === "-1") return null;
     return Buffer.from(value, "base64url").toString("utf-8");

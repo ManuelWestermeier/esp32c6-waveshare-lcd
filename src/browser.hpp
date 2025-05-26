@@ -19,6 +19,53 @@ struct Request {
   }
 };
 
+String base64EncodeSafe(const String& input) {
+  const char* base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  String encoded = "";
+
+  int i = 0;
+  int inputLen = input.length();
+  unsigned char char_array_3[3];
+  unsigned char char_array_4[4];
+
+  for (int pos = 0; pos < inputLen; ++pos) {
+    char_array_3[i++] = input[pos];
+    if (i == 3) {
+      char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+      char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+      char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+      char_array_4[3] = char_array_3[2] & 0x3f;
+
+      for (i = 0; i < 4; i++)
+        encoded += base64_chars[char_array_4[i]];
+      i = 0;
+    }
+  }
+
+  if (i) {
+    for (int j = i; j < 3; j++)
+      char_array_3[j] = '\0';
+
+    char_array_4[0] = (char_array_3[0] & 0xfc) >> 2;
+    char_array_4[1] = ((char_array_3[0] & 0x03) << 4) + ((char_array_3[1] & 0xf0) >> 4);
+    char_array_4[2] = ((char_array_3[1] & 0x0f) << 2) + ((char_array_3[2] & 0xc0) >> 6);
+    char_array_4[3] = char_array_3[2] & 0x3f;
+
+    for (int j = 0; j < i + 1; j++)
+      encoded += base64_chars[char_array_4[j]];
+
+    // Padding characters, not needed for filenames
+    // encoded += String((i == 1) ? "==" : "=");
+  }
+
+  // Remove unsafe characters for filesystem
+  encoded.replace("+", "-");
+  encoded.replace(String("/"), "_");
+  encoded.replace("=", "");
+
+  return encoded;
+}
+
 struct Browser {
   Credentials credentials;
   String appDomain = "";
@@ -123,29 +170,35 @@ struct Browser {
       // storage
       else if (cmd == "get-storage-key") {
         String key = client.readStringUntil('\n');
-        String path = "/" + credentials.username + "/browser/storage/" + appDomain + "/" + key + ".data";
-        File file = LittleFS.open(path, "r");
+        String encodedKey = base64EncodeSafe(key);
+        String path = String("/") + base64EncodeSafe(credentials.username) + String("/browser/storage/") + base64EncodeSafe(appDomain) + String("/") + encodedKey + String(".data");
+
         String value = "-1";
-        if (file) {
+
+        if (LittleFS.exists(path)) {
+          File file = LittleFS.open(path, "r");
           value = file.readString();
           file.close();
         }
+
         if (client.connected())
           client.println("return-storage-key\n" + value);
+
       } else if (cmd == "set-storage-key") {
         String key = client.readStringUntil('\n');
         String value = client.readStringUntil('\n');
-        String path = "/" + credentials.username + "/browser/storage/" + appDomain + "/" + key + ".data";
+        String encodedKey = base64EncodeSafe(key);
+        String path = String("/") + base64EncodeSafe(credentials.username) + "/browser/storage/" + base64EncodeSafe(appDomain) + String("/") + encodedKey + ".data";
+
+        Serial.println(path);
 
         // Ensure directory exists
-        String folderPath = "/" + credentials.username + "/browser/storage/" + appDomain;
+        String folderPath = String("/") + base64EncodeSafe(credentials.username) + "/browser/storage/" + base64EncodeSafe(appDomain);
         LittleFS.mkdir(folderPath);
 
-        File file = LittleFS.open(path, "w");
-        if (file) {
-          file.print(value);
-          file.close();
-        }
+        File file = LittleFS.open(path, "w+");
+        file.print(value);
+        file.close();
       }
       // input
       else if (cmd == "ask-text") {
@@ -208,7 +261,7 @@ struct Browser {
   }
 
 private:
-  void showError(const char *msg) {
+  void showError(const char* msg) {
     tft.fillScreen(ST77XX_BLACK);
     tft.setCursor(0, 0);
     tft.setTextColor(ST77XX_RED);
