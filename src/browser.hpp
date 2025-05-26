@@ -5,8 +5,6 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7789.h>
 #include <LittleFS.h>
-#include <base64.h>
-#include <AESLib.h>
 
 #include "colors.hpp"
 #include "metadata.hpp"
@@ -26,77 +24,6 @@ struct Browser {
   String appDomain = "";
   bool onPage = false;
   WiFiClient client;
-
-  AESLib aesLib;
-  uint8_t aesKey[16];         // 128-bit key
-  uint8_t aesIV[16] = { 0 };  // Initialization Vector (can be random or constant)
-
-  void initAESKeyFromPassword(const String &password) {
-    for (int i = 0; i < 16; i++) {
-      aesKey[i] = i < password.length() ? password[i] : 0;
-    }
-  }
-
-  // Encrypt plaintext string, return base64 ciphertext string
-  String encrypt(const String &msg) {
-    const int inputLen = msg.length();
-    if (inputLen == 0) return "";
-
-    // Buffer for encrypted binary data
-    uint8_t encrypted[inputLen + 16];  // enough space for block padding, 16 uint8_ts extra
-    memset(encrypted, 0, sizeof(encrypted));
-
-    uint8_t iv[16];
-    memcpy(iv, aesIV, 16);
-
-    // Encrypt raw binary data (input is uint8_t*, output is uint8_t*)
-    uint16_t cipherLen = aesLib.encrypt(
-      (uint8_t *)msg.c_str(),  // input uint8_ts
-      inputLen,             // input length
-      encrypted,            // output buffer (binary encrypted data)
-      aesKey,               // AES key
-      128,                  // key bits
-      iv                    // IV
-    );
-
-    // Now encode the encrypted binary buffer to base64 for safe transmission/storage
-    char base64Encrypted[base64_enc_len(cipherLen) + 1];
-    base64_encode(base64Encrypted, (char *)encrypted, cipherLen);
-
-    return String(base64Encrypted);
-  }
-
-  // Decrypt base64 ciphertext string, return plaintext string
-  String decrypt(const String &encryptedBase64) {
-    if (encryptedBase64.length() == 0) return "";
-
-    // Decode base64 into binary buffer
-    int maxDecodedLen = encryptedBase64.length() * 3 / 4 + 4;
-    uint8_t decoded[maxDecodedLen];
-    memset(decoded, 0, maxDecodedLen);
-
-    int decodedLen = base64_decode((char *)decoded, (char *)encryptedBase64.c_str(), encryptedBase64.length());
-    if (decodedLen <= 0) return "";
-
-    uint8_t iv[16];
-    memcpy(iv, aesIV, 16);
-
-    // Buffer for decrypted output (plaintext)
-    uint8_t decrypted[decodedLen + 1];
-    memset(decrypted, 0, decodedLen + 1);
-
-    uint16_t decryptedLen = aesLib.decrypt(
-      decoded,     // encrypted binary input
-      decodedLen,  // length of encrypted input
-      decrypted,   // decrypted output buffer
-      aesKey,      // AES key
-      128,         // key bits
-      iv           // IV
-    );
-    decrypted[decryptedLen] = '\0';  // null terminate decrypted string
-
-    return String((char *)decrypted);
-  }
 
   void Start() {
     // appDomain = "hg2z.duckdns.org:25279";
@@ -119,8 +46,6 @@ struct Browser {
       showError("Connection failed");
       return false;
     }
-
-    initAESKeyFromPassword(credentials.password);
 
     clearScreen(UI_BG);
     tft.setTextSize(2);
@@ -202,16 +127,14 @@ struct Browser {
         File file = LittleFS.open(path, "r");
         String value = "-1";
         if (file) {
-          String encrypted = file.readString();
+          value = file.readString();
           file.close();
-          value = decrypt(encrypted);
         }
         if (client.connected())
           client.println("return-storage-key\n" + value);
       } else if (cmd == "set-storage-key") {
         String key = client.readStringUntil('\n');
         String value = client.readStringUntil('\n');
-        String encrypted = encrypt(value);
         String path = "/" + credentials.username + "/browser/storage/" + appDomain + "/" + key + ".data";
 
         // Ensure directory exists
@@ -220,7 +143,7 @@ struct Browser {
 
         File file = LittleFS.open(path, "w");
         if (file) {
-          file.print(encrypted);
+          file.print(value);
           file.close();
         }
       }
