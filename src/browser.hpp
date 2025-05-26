@@ -31,18 +31,53 @@ struct Browser {
   uint8_t aesKey[16];         // 128-bit key
   uint8_t aesIV[16] = { 0 };  // Initialization Vector (can be random or constant)
 
-  String encrypt(const String& msg) {
-    return aesLib.encrypt64(msg.c_str(), aesKey, aesIV);
-  }
-
-  String decrypt(const String& encryptedBase64) {
-    return aesLib.decrypt64(encryptedBase64.c_str(), aesKey, aesIV);
-  }
-
   void initAESKeyFromPassword(String password) {
     for (int i = 0; i < 16; i++) {
       aesKey[i] = i < password.length() ? password[i] : 0;
     }
+  }
+
+  // Encrypt plaintext string, return base64 ciphertext string
+  String encrypt(const String &msg) {
+    const int inputLen = msg.length();
+    if (inputLen == 0) return "";
+
+    // Prepare buffers
+    char encrypted[2 * inputLen + 20] = { 0 };  // enough space for base64 output
+    byte iv[16];
+    memcpy(iv, aesIV, 16);  // use your class IV as base
+
+    uint16_t cipherLen = aesLib.encrypt((byte *)msg.c_str(), inputLen, encrypted, aesKey, 128, iv);
+    encrypted[cipherLen] = '\0';  // null terminate
+
+    return String(encrypted);
+  }
+
+  // Decrypt base64 ciphertext string, return plaintext string
+  String decrypt(const String &encryptedBase64) {
+    if (encryptedBase64.length() == 0) return "";
+
+    // Decode base64 into binary buffer
+    // Allocate buffer for decoded binary - max base64 decoded size ~ 3/4 of input size
+    int maxDecodedLen = encryptedBase64.length() * 3 / 4 + 4;
+    byte decoded[maxDecodedLen];
+    memset(decoded, 0, maxDecodedLen);
+
+    int decodedLen = base64_decode((char *)decoded, (char *)encryptedBase64.c_str(), encryptedBase64.length());
+
+    if (decodedLen <= 0) return "";
+
+    byte iv[16];
+    memcpy(iv, aesIV, 16);
+
+    // Buffer for decrypted output
+    byte decrypted[decodedLen + 1];
+    memset(decrypted, 0, decodedLen + 1);
+
+    uint16_t decryptedLen = aesLib.decrypt(decoded, decodedLen, decrypted, aesKey, 128, iv);
+    decrypted[decryptedLen] = '\0';  // null terminate
+
+    return String((char *)decrypted);
   }
 
   void Start() {
@@ -232,7 +267,7 @@ struct Browser {
   }
 
 private:
-  void showError(const char* msg) {
+  void showError(const char *msg) {
     tft.fillScreen(ST77XX_BLACK);
     tft.setCursor(0, 0);
     tft.setTextColor(ST77XX_RED);
