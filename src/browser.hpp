@@ -130,6 +130,22 @@ struct Browser {
     }
   }
 
+  void ensurePathExists(const String& fullPath) {
+    String path = "";
+    int fromIndex = 1;  // Skip the first slash
+
+    while (true) {
+      int nextSlash = fullPath.indexOf('/', fromIndex);
+      if (nextSlash == -1) break;
+      path = fullPath.substring(0, nextSlash);
+      LittleFS.mkdir(path);
+      fromIndex = nextSlash + 1;
+    }
+
+    // Also mkdir the full path itself (in case it ends in a folder)
+    LittleFS.mkdir(fullPath);
+  }
+
   void HandleServerMessages() {
     while (client.connected() && client.available()) {
       String cmd = client.readStringUntil('\n');
@@ -187,19 +203,23 @@ struct Browser {
       } else if (cmd == "set-storage-key") {
         String key = client.readStringUntil('\n');
         String value = client.readStringUntil('\n');
+
         String encodedKey = base64EncodeSafe(key);
-        String path = String("/") + base64EncodeSafe(credentials.username) + "/browser/storage/" + base64EncodeSafe(appDomain) + String("/") + encodedKey + ".data";
+        String userPath = base64EncodeSafe(credentials.username);
+        String domainPath = base64EncodeSafe(appDomain);
+        String folderPath = "/" + userPath + "/browser/storage/" + domainPath;
+        String path = folderPath + "/" + encodedKey + ".data";
 
         Serial.println(path);
 
-        // Ensure directory exists
-        String folderPath = String("/") + base64EncodeSafe(credentials.username) + "/browser/storage/" + base64EncodeSafe(appDomain);
-        LittleFS.mkdir(folderPath);
+        // Ensure full folder path exists
+        ensurePathExists(folderPath);
 
-        File file = LittleFS.open(path, "w+");
+        File file = LittleFS.open(path, "w");
         file.print(value);
         file.close();
       }
+
       // input
       else if (cmd == "ask-text") {
         String question = client.readStringUntil('\n');
