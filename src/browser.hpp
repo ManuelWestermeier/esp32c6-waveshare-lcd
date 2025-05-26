@@ -149,17 +149,33 @@ struct Browser {
         tft.setTextSize(size);
       }
       // storage
-      // under /{credentials.username}/browser/storage/appDomain/{key}.data
-      // encrypt using {credentials.password}
       else if (cmd == "get-storage-key") {
         String key = client.readStringUntil('\n');
-        String base64Output = to base64(LittleFS.readfile if exits (key)) || "-1";
+        String path = "/" + credentials.username + "/browser/storage/" + appDomain + "/" + key + ".data";
+        File file = LittleFS.open(path, "r");
+        String value = "-1";
+        if (file) {
+          String encrypted = file.readString();
+          file.close();
+          value = decrypt(encrypted);
+        }
         if (client.connected())
           client.println("return-storage-key\n" + value);
       } else if (cmd == "set-storage-key") {
         String key = client.readStringUntil('\n');
-        String base64Value = client.readStringUntil('\n');
-        String output = to base64(LittleFS.readfile if exits (key)) || "-1";
+        String value = client.readStringUntil('\n');
+        String encrypted = encrypt(value);
+        String path = "/" + credentials.username + "/browser/storage/" + appDomain + "/" + key + ".data";
+
+        // Ensure directory exists
+        String folderPath = "/" + credentials.username + "/browser/storage/" + appDomain;
+        LittleFS.mkdir(folderPath);
+
+        File file = LittleFS.open(path, "w");
+        if (file) {
+          file.print(encrypted);
+          file.close();
+        }
       }
       // input
       else if (cmd == "ask-text") {
