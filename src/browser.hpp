@@ -131,22 +131,38 @@ struct Browser {
   }
 
   void ensurePathExists(const String& fullPath) {
-    if (!fullPath.startsWith("/")) return;  // Ensure path is absolute
+    if (!fullPath.startsWith("/")) return;
 
     String path = "";
-    int fromIndex = 1;  // Start after initial '/'
+    int fromIndex = 1;
 
     while (true) {
       int nextSlash = fullPath.indexOf('/', fromIndex);
       if (nextSlash == -1) break;
 
       path = fullPath.substring(0, nextSlash);
-      LittleFS.mkdir(path);
+      if (!LittleFS.exists(path)) {
+        if (!LittleFS.mkdir(path)) {
+          Serial.println("Failed to create directory: " + path);
+          return;  // or handle error
+        }
+      }
+
       fromIndex = nextSlash + 1;
     }
 
-    // Always create the final path, regardless of trailing slash
-    LittleFS.mkdir(fullPath);
+    // Determine if the last segment is a directory
+    if (!fullPath.endsWith("/")) {
+      int lastSlash = fullPath.lastIndexOf('/');
+      String maybeDir = fullPath.substring(0, lastSlash);
+      if (!LittleFS.exists(maybeDir)) {
+        LittleFS.mkdir(maybeDir);  // or use the same check logic
+      }
+    } else {
+      if (!LittleFS.exists(fullPath)) {
+        LittleFS.mkdir(fullPath);
+      }
+    }
   }
 
   void HandleServerMessages() {
