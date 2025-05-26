@@ -131,18 +131,21 @@ struct Browser {
   }
 
   void ensurePathExists(const String& fullPath) {
+    if (!fullPath.startsWith("/")) return;  // Ensure path is absolute
+
     String path = "";
-    int fromIndex = 1;  // Skip the first slash
+    int fromIndex = 1;  // Start after initial '/'
 
     while (true) {
       int nextSlash = fullPath.indexOf('/', fromIndex);
       if (nextSlash == -1) break;
+
       path = fullPath.substring(0, nextSlash);
       LittleFS.mkdir(path);
       fromIndex = nextSlash + 1;
     }
 
-    // Also mkdir the full path itself (in case it ends in a folder)
+    // Always create the final path, regardless of trailing slash
     LittleFS.mkdir(fullPath);
   }
 
