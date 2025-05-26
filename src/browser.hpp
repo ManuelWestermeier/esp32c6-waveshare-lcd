@@ -28,21 +28,15 @@ struct Browser {
   WiFiClient client;
 
   AESLib aesLib;
-  byte aesKey[16];         // 128-bit key
-  byte aesIV[16] = { 0 };  // Initialization Vector (can be random or constant)
+  uint8_t aesKey[16];         // 128-bit key
+  uint8_t aesIV[16] = { 0 };  // Initialization Vector (can be random or constant)
 
-  String encrypt(String msg) {
-    int len = msg.length() + 1;
-    char encrypted[len + AES_BLOCKLEN];  // ensure enough space
-    aesLib.encrypt64(msg.c_str(), aesKey, aesIV, encrypted);
-    return String(encrypted);
+  String encrypt(const String& msg) {
+    return aesLib.encrypt64(msg.c_str(), aesKey, aesIV);
   }
 
-  String decrypt(String encryptedBase64) {
-    int len = encryptedBase64.length() + 1;
-    char decrypted[len];
-    aesLib.decrypt64(encryptedBase64.c_str(), aesKey, aesIV, decrypted);
-    return String(decrypted);
+  String decrypt(const String& encryptedBase64) {
+    return aesLib.decrypt64(encryptedBase64.c_str(), aesKey, aesIV);
   }
 
   void initAESKeyFromPassword(String password) {
@@ -238,7 +232,7 @@ struct Browser {
   }
 
 private:
-  void showError(const char *msg) {
+  void showError(const char* msg) {
     tft.fillScreen(ST77XX_BLACK);
     tft.setCursor(0, 0);
     tft.setTextColor(ST77XX_RED);
