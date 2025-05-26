@@ -4,6 +4,9 @@
 #include <WiFi.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7789.h>
+#include <LittleFS.h>
+#include <base64.h>
+#include <AESLib.h>
 
 #include "colors.hpp"
 #include "metadata.hpp"
@@ -23,6 +26,30 @@ struct Browser {
   String appDomain = "";
   bool onPage = false;
   WiFiClient client;
+
+  AESLib aesLib;
+  byte aesKey[16];         // 128-bit key
+  byte aesIV[16] = { 0 };  // Initialization Vector (can be random or constant)
+
+  String encrypt(String msg) {
+    int len = msg.length() + 1;
+    char encrypted[len + AES_BLOCKLEN];  // ensure enough space
+    aesLib.encrypt64(msg.c_str(), aesKey, aesIV, encrypted);
+    return String(encrypted);
+  }
+
+  String decrypt(String encryptedBase64) {
+    int len = encryptedBase64.length() + 1;
+    char decrypted[len];
+    aesLib.decrypt64(encryptedBase64.c_str(), aesKey, aesIV, decrypted);
+    return String(decrypted);
+  }
+
+  void initAESKeyFromPassword(String password) {
+    for (int i = 0; i < 16; i++) {
+      aesKey[i] = i < password.length() ? password[i] : 0;
+    }
+  }
 
   void Start() {
     // appDomain = "hg2z.duckdns.org:25279";
@@ -45,6 +72,8 @@ struct Browser {
       showError("Connection failed");
       return false;
     }
+
+    initAESKeyFromPassword(credentials.password);
 
     clearScreen(UI_BG);
     tft.setTextSize(2);
@@ -86,6 +115,7 @@ struct Browser {
     while (client.connected() && client.available()) {
       String cmd = client.readStringUntil('\n');
 
+      // screen output
       if (cmd == "fillScreen") {
         uint16_t color = client.readStringUntil('\n').toInt();
         tft.fillScreen(color);
@@ -117,7 +147,22 @@ struct Browser {
       } else if (cmd == "setTextSize") {
         uint16_t size = client.readStringUntil('\n').toInt();
         tft.setTextSize(size);
-      } else if (cmd == "ask-text") {
+      }
+      // storage
+      // under /{credentials.username}/browser/storage/appDomain/{key}.data
+      // encrypt using {credentials.password}
+      else if (cmd == "get-storage-key") {
+        String key = client.readStringUntil('\n');
+        String base64Output = to base64(LittleFS.readfile if exits (key)) || "-1";
+        if (client.connected())
+          client.println("return-storage-key\n" + value);
+      } else if (cmd == "set-storage-key") {
+        String key = client.readStringUntil('\n');
+        String base64Value = client.readStringUntil('\n');
+        String output = to base64(LittleFS.readfile if exits (key)) || "-1";
+      }
+      // input
+      else if (cmd == "ask-text") {
         String question = client.readStringUntil('\n');
         String defaultValue = client.readStringUntil('\n');
         String value = ask(question, defaultValue);
