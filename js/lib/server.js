@@ -79,20 +79,24 @@ class Client {
     return parseInt(await this._waitFor("ask-select-value"), 10);
   }
 
-  async storeSet(key = "", value = "") {
-    this.sendCommand(
-      "set-storage-key",
-      Buffer.from(key).toString("base64url"),
-      Buffer.from(value).toString("base64url")
-    );
-  }
-
-  async storeGet(key = "") {
-    this.sendCommand("get-storage-key", Buffer.from(key).toString("base64url"));
-    const value = await this._waitFor("return-storage-key");
-    if (value === "-1") return null;
-    return Buffer.from(value, "base64url").toString("utf-8");
-  }
+  stoarge = {
+    set: async (key = "", value = "") => {
+      this.sendCommand(
+        "set-storage-key",
+        Buffer.from(key).toString("base64url"),
+        Buffer.from(value).toString("base64url")
+      );
+    },
+    get: async (key = "") => {
+      this.sendCommand(
+        "get-storage-key",
+        Buffer.from(key).toString("base64url")
+      );
+      const value = await this._waitFor("return-storage-key");
+      if (value === "-1") return null;
+      return Buffer.from(value, "base64url").toString("utf-8");
+    },
+  };
 
   _waitFor(cmd) {
     return new Promise((resolve) => {

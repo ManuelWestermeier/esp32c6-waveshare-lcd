@@ -72,6 +72,7 @@ createServer(async (client) => {
   client.onrerender = render;
 
   client.oninit = () => {
+    client.stoarge.get("ID");
     render();
   };
 
