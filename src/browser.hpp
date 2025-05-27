@@ -138,32 +138,24 @@ struct Browser {
 
     while (true) {
       int nextSlash = fullPath.indexOf('/', fromIndex);
-      if (nextSlash == -1) break;
+
+      // Wenn kein weiterer Slash: das Ende des Pfads selbst nutzen
+      if (nextSlash == -1) nextSlash = fullPath.length();
 
       path = fullPath.substring(0, nextSlash);
+
       if (!LittleFS.exists(path)) {
         if (!LittleFS.mkdir(path)) {
           Serial.println("Failed to create directory: " + path);
-          return;  // or handle error
+          return;
         }
       }
 
+      if (nextSlash == fullPath.length()) break;
       fromIndex = nextSlash + 1;
     }
-
-    // Determine if the last segment is a directory
-    if (!fullPath.endsWith("/")) {
-      int lastSlash = fullPath.lastIndexOf('/');
-      String maybeDir = fullPath.substring(0, lastSlash);
-      if (!LittleFS.exists(maybeDir)) {
-        LittleFS.mkdir(maybeDir);  // or use the same check logic
-      }
-    } else {
-      if (!LittleFS.exists(fullPath)) {
-        LittleFS.mkdir(fullPath);
-      }
-    }
   }
+
 
   void HandleServerMessages() {
     while (client.connected() && client.available()) {
@@ -230,7 +222,7 @@ struct Browser {
         String path = String("/") + (base64EncodeSafe(credentials.username) + String("/browser/storage/") + base64EncodeSafe(appDomain) + String("/") + encodedKey) + String(".data");
 
         // Ensure full folder path exists
-        ensurePathExists(folderPath);
+        ensurePathExists(path);
 
         tft.println(path);
         delay(10000);
