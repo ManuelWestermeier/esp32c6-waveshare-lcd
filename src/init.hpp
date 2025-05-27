@@ -1,14 +1,33 @@
 #pragma once
 
+#include <LittleFS.h>
+
 #include "metadata.hpp"
 #include "colors.hpp"
 #include "rgb-led.hpp"
+
+void mountFS()
+{
+  while (!LittleFS.begin(true))
+  {
+    Serial.println("Failed to mount LittleFS");
+    tft.fillScreen(UI_BG);
+    tft.setTextColor(UI_Text);
+    tft.setCursor(20, 20);
+    tft.println("Failed to mount FS");
+    delay(2000);
+  }
+  if (!LittleFS.exists("/users"))
+    LittleFS.mkdir("/users");
+  if (!LittleFS.exists("/wifi"))
+    LittleFS.mkdir("/wifi");
+}
 
 void init()
 {
   Serial.begin(115200);
   Serial.println("Hello");
-  
+
   pinMode(BUTTON, INPUT_PULLDOWN);
   pixels.begin();
   // SPI init (optional—Adafruit does it for you)
@@ -26,4 +45,6 @@ void init()
   // text style
   tft.setTextColor(UI_Text);
   tft.setTextSize(2); // 2× scale
+
+  mountFS();
 }

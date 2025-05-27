@@ -35,19 +35,6 @@ String sha256Hex(const String& input) {
   return String(out);
 }
 
-void mountFS() {
-  while (!LittleFS.begin(true)) {
-    Serial.println("Failed to mount LittleFS");
-    tft.fillScreen(UI_BG);
-    tft.setTextColor(UI_Text);
-    tft.setCursor(20, 20);
-    tft.println("Failed to mount FS");
-    delay(2000);
-  }
-  if (!LittleFS.exists("/users")) LittleFS.mkdir("/users");
-  if (!LittleFS.exists("/wifi")) LittleFS.mkdir("/wifi");
-}
-
 // --- ACCOUNT CREATION & LOGIN ---
 
 Credentials createAccount(const String& username, const String& /*userPath*/) {
@@ -221,7 +208,6 @@ bool scanAndConnect(std::vector<std::pair<String, String>>& saved) {
 // --- STARTUP ---
 
 Credentials start() {
-  mountFS();
   String username = ask("Enter your username", "");
   String uHash = sha256Hex(username);
   String userDir = "/users/" + uHash;
