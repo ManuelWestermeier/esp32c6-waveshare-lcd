@@ -200,9 +200,6 @@ struct Browser {
         String encodedKey = base64EncodeSafe(key);
         String path = String("/") + (base64EncodeSafe(credentials.username) + String("/browser/storage/") + base64EncodeSafe(appDomain) + String("/") + encodedKey) + String(".data");
 
-        tft.println(path);
-        delay(10000);
-
         String value = "-1";
 
         if (LittleFS.exists(path)) {
@@ -223,9 +220,6 @@ struct Browser {
 
         // Ensure full folder path exists
         ensurePathExists(path);
-
-        tft.println(path);
-        delay(10000);
 
         File file = LittleFS.open(path, "w");
         file.print(value);
