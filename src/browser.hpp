@@ -174,7 +174,8 @@ struct Browser {
         String path = String("/") + (base64EncodeSafe(credentials.username) + String("/browser/storage/") + base64EncodeSafe(appDomain) + String("/") + encodedKey) + String(".data");
 
         tft.setCursor(20, 20);
-        tft.println(path);
+        Serial.println(path);
+        delay(5000);
 
         String value = "-1";
 
@@ -197,9 +198,8 @@ struct Browser {
         tft.println(path);
 
         tft.setCursor(20, 20);
-        delay(5000);
-
         Serial.println(path);
+        delay(5000);
 
         File file = LittleFS.open(path, "w");
         file.print(value);
