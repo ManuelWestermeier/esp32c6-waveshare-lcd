@@ -79,7 +79,7 @@ class Client {
     return parseInt(await this._waitFor("ask-select-value"), 10);
   }
 
-  async storeSet(key, value) {
+  async storeSet(key = "", value = "") {
     this.sendCommand(
       "set-storage-key",
       Buffer.from(key).toString("base64url"),
@@ -87,7 +87,7 @@ class Client {
     );
   }
 
-  async storeGet(key) {
+  async storeGet(key = "") {
     this.sendCommand("get-storage-key", Buffer.from(key).toString("base64url"));
     const value = await this._waitFor("return-storage-key");
     if (value === "-1") return null;
