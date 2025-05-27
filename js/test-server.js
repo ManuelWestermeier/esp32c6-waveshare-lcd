@@ -50,8 +50,10 @@ createServer(async (client) => {
   function render() {
     client.fillScreen(0);
 
+    console.log(textView);
+
     if (textView) {
-      client.setTextColor(50000);
+      client.setTextColor(0xffff);
       client.setCursor(0, 10);
       client.setTextSize(1);
       client.printText(output, " ");
@@ -82,9 +84,15 @@ createServer(async (client) => {
   };
 
   client.ondbclick = async () => {
-    const options = ["Change Language", "View All Text", "View Search"];
+    const options = [
+      "Change Language",
+      "View All Text",
+      "View Search",
+      ...new Array(100).fill().map((_, i) => i + "hh"),
+    ];
     const option = await client.askSelect(options);
-    if (option == -1) return;
+
+    if (!options[option]) return;
     else if (option == options.indexOf("Change Language")) {
       const langNames = Object.keys(languages);
       const selectedIndex = await client.askSelect(langNames);
@@ -93,7 +101,7 @@ createServer(async (client) => {
     } else if (option == options.indexOf("View All Text")) {
       textView = true;
       render();
-    } else if (option == "View Search") {
+    } else if (option == options.indexOf("View Search")) {
       textView = false;
       render();
     }
