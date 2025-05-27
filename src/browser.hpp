@@ -130,6 +130,41 @@ struct Browser {
     }
   }
 
+  void ensurePathExists(const String& fullPath) {
+    if (!fullPath.startsWith("/")) return;
+
+    String path = "";
+    int fromIndex = 1;
+
+    while (true) {
+      int nextSlash = fullPath.indexOf('/', fromIndex);
+      if (nextSlash == -1) break;
+
+      path = fullPath.substring(0, nextSlash);
+      if (!LittleFS.exists(path)) {
+        if (!LittleFS.mkdir(path)) {
+          Serial.println("Failed to create directory: " + path);
+          return;  // or handle error
+        }
+      }
+
+      fromIndex = nextSlash + 1;
+    }
+
+    // Determine if the last segment is a directory
+    if (!fullPath.endsWith("/")) {
+      int lastSlash = fullPath.lastIndexOf('/');
+      String maybeDir = fullPath.substring(0, lastSlash);
+      if (!LittleFS.exists(maybeDir)) {
+        LittleFS.mkdir(maybeDir);  // or use the same check logic
+      }
+    } else {
+      if (!LittleFS.exists(fullPath)) {
+        LittleFS.mkdir(fullPath);
+      }
+    }
+  }
+
   void HandleServerMessages() {
     while (client.connected() && client.available()) {
       String cmd = client.readStringUntil('\n');
@@ -173,9 +208,8 @@ struct Browser {
         String encodedKey = base64EncodeSafe(key);
         String path = String("/") + (base64EncodeSafe(credentials.username) + String("/browser/storage/") + base64EncodeSafe(appDomain) + String("/") + encodedKey) + String(".data");
 
-        tft.setCursor(20, 20);
-        Serial.println(path);
-        delay(5000);
+        tft.println(path);
+        delay(10000);
 
         String value = "-1";
 
@@ -195,11 +229,11 @@ struct Browser {
         String encodedKey = base64EncodeSafe(key);
         String path = String("/") + (base64EncodeSafe(credentials.username) + String("/browser/storage/") + base64EncodeSafe(appDomain) + String("/") + encodedKey) + String(".data");
 
-        tft.println(path);
+        // Ensure full folder path exists
+        ensurePathExists(folderPath);
 
-        tft.setCursor(20, 20);
-        Serial.println(path);
-        delay(5000);
+        tft.println(path);
+        delay(10000);
 
         File file = LittleFS.open(path, "w");
         file.print(value);

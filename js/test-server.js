@@ -72,8 +72,8 @@ createServer(async (client) => {
   client.onrerender = render;
 
   client.oninit = () => {
-    client.storeGet("Hello").then(console.log);
     client.storeSet("Hello", "HI!");
+    client.storeGet("Hello").then(console.log);
     render();
   };
 
