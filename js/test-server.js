@@ -72,8 +72,6 @@ createServer(async (client) => {
   client.onrerender = render;
 
   client.oninit = () => {
-    client.stoarge.set("Hello", "HI!");
-    client.stoarge.get("Hello").then(console.log);
     render();
   };
 
