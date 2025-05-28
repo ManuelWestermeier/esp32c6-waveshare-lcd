@@ -12,19 +12,15 @@
 #include "input.hpp"
 #include "browser/base64encode.hpp"
 
-struct Request {
-  String type;
-  String data;
-  String toString() {
-    return type + "\n" + data;
-  }
-};
-
 struct Browser {
   Credentials credentials;
   String appDomain = "";
   bool onPage = false;
   WiFiClient client;
+
+  String readDomain() {
+
+  }
 
   void Start() {
     // appDomain = "hg2z.duckdns.org:25279";
