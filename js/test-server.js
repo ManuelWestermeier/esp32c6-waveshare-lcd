@@ -82,12 +82,7 @@ createServer(async (client) => {
   };
 
   client.ondbclick = async () => {
-    const options = [
-      "Change Language",
-      "View All Text",
-      "View Search",
-      ...new Array(100).fill().map((_, i) => i + "hh"),
-    ];
+    const options = ["Change Language", "View All Text", "View Search"];
     const option = await client.askSelect(options);
 
     if (!options[option]) return;
