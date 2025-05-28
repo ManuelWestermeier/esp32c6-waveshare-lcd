@@ -4,7 +4,9 @@
 #include <WiFi.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7789.h>
-#include <LittleFS.h>
+
+#include <SD.h>
+#include <SPI.h>
 
 #include "colors.hpp"
 #include "metadata.hpp"
@@ -67,6 +69,19 @@ String base64EncodeSafe(const String& input) {
 }
 
 struct Browser {
+private:
+  void showError(const char* msg) {
+    tft.fillScreen(ST77XX_BLACK);
+    tft.setCursor(0, 0);
+    tft.setTextColor(ST77XX_RED);
+    tft.println(msg);
+  }
+
+  void clearScreen(uint16_t color) {
+    tft.fillScreen(color);
+    tft.setCursor(0, 0);
+  }
+public:
   Credentials credentials;
   String appDomain = "";
   bool onPage = false;
@@ -142,8 +157,8 @@ struct Browser {
       if (nextSlash == -1) break;
 
       path = fullPath.substring(0, nextSlash);
-      if (!LittleFS.exists(path)) {
-        if (!LittleFS.mkdir(path)) {
+      if (!SD.exists(path)) {
+        if (!SD.mkdir(path)) {
           Serial.println("Failed to create directory: " + path);
           return;  // or handle error
         }
@@ -156,12 +171,12 @@ struct Browser {
     if (!fullPath.endsWith("/")) {
       int lastSlash = fullPath.lastIndexOf('/');
       String maybeDir = fullPath.substring(0, lastSlash);
-      if (!LittleFS.exists(maybeDir)) {
-        LittleFS.mkdir(maybeDir);  // or use the same check logic
+      if (!SD.exists(maybeDir)) {
+        SD.mkdir(maybeDir);  // or use the same check logic
       }
     } else {
-      if (!LittleFS.exists(fullPath)) {
-        LittleFS.mkdir(fullPath);
+      if (!SD.exists(fullPath)) {
+        SD.mkdir(fullPath);
       }
     }
   }
@@ -211,8 +226,8 @@ struct Browser {
 
         String value = "-1";
 
-        if (LittleFS.exists(path)) {
-          File file = LittleFS.open(path, "r");
+        if (SD.exists(path)) {
+          File file = SD.open(path, "r");
           value = file.readString();
           file.close();
         }
@@ -230,7 +245,7 @@ struct Browser {
         // Ensure full folder path exists
         ensurePathExists(path);
 
-        File file = LittleFS.open(path, "w");
+        File file = SD.open(path, "w");
         file.print(value);
         file.close();
       }
@@ -293,18 +308,5 @@ struct Browser {
       HandleInput();
       HandleServerMessages();
     }
-  }
-
-private:
-  void showError(const char* msg) {
-    tft.fillScreen(ST77XX_BLACK);
-    tft.setCursor(0, 0);
-    tft.setTextColor(ST77XX_RED);
-    tft.println(msg);
-  }
-
-  void clearScreen(uint16_t color) {
-    tft.fillScreen(color);
-    tft.setCursor(0, 0);
   }
 };
