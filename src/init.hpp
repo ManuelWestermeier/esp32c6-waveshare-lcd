@@ -10,7 +10,10 @@ void initStorage() {
   spiSD.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
   if (!SD.begin(SD_CS, spiSD)) {
     Serial.println("💥 SD-Karte konnte nicht initialisiert werden!");
-    showError("No SD card!");
+    tft.fillScreen(ST77XX_BLACK);
+    tft.setCursor(0, 0);
+    tft.setTextColor(ST77XX_RED);
+    tft.println("No SD card!");
     while (true)
       ;  // Stoppe, wenn SD-Karte fehlt
   }

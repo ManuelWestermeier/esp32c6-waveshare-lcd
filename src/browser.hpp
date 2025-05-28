@@ -15,7 +15,11 @@
 #include "browser/base64encode.hpp"
 
 struct Browser {
-private:
+  Credentials credentials;
+  String appDomain = "";
+  bool onPage = false;
+  WiFiClient client;
+
   void showError(const char* msg) {
     tft.fillScreen(ST77XX_BLACK);
     tft.setCursor(0, 0);
@@ -27,21 +31,15 @@ private:
     tft.fillScreen(color);
     tft.setCursor(0, 0);
   }
-public:
-  Credentials credentials;
-  String appDomain = "";
-  bool onPage = false;
-  WiFiClient client;
 
   String readDomain() {
-
   }
 
   void Start() {
-    // appDomain = "hg2z.duckdns.org:25279";
+    appDomain = "hg2z.duckdns.org:25279";
     // appDomain = "192.168.178.33:25279";
     // appDomain = "192.168.4.2:25279";
-    appDomain = "192.168.137.1:25279";
+    // appDomain = "192.168.137.1:25279";
     onPage = false;
   }
 
