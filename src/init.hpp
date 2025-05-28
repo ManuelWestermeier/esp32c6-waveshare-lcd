@@ -6,10 +6,19 @@
 #include "colors.hpp"
 #include "rgb-led.hpp"
 
-void mountFS()
-{
-  while (!LittleFS.begin(true))
-  {
+void initStorage() {
+  spiSD.begin(SD_SCK, SD_MISO, SD_MOSI, SD_CS);
+  if (!SD.begin(SD_CS, spiSD)) {
+    Serial.println("💥 SD-Karte konnte nicht initialisiert werden!");
+    showError("No SD card!");
+    while (true)
+      ;  // Stoppe, wenn SD-Karte fehlt
+  }
+  Serial.println("✅ SD-Karte erkannt.");
+}
+
+void mountFS() {
+  while (!LittleFS.begin(true)) {
     Serial.println("Failed to mount LittleFS");
     tft.fillScreen(UI_BG);
     tft.setTextColor(UI_Text);
@@ -23,8 +32,7 @@ void mountFS()
     LittleFS.mkdir("/wifi");
 }
 
-void init()
-{
+void init() {
   Serial.begin(115200);
   Serial.println("Hello");
 
@@ -35,7 +43,7 @@ void init()
 
   // Initialize display, width=172, height=320
   tft.init(172, 320);
-  tft.setRotation(2); // vertical
+  tft.setRotation(2);  // vertical
   tft.fillScreen(UI_BG);
 
   // backlight on
@@ -44,7 +52,8 @@ void init()
 
   // text style
   tft.setTextColor(UI_Text);
-  tft.setTextSize(2); // 2× scale
+  tft.setTextSize(2);  // 2× scale
 
   mountFS();
+  initStorage();
 }
