@@ -50,8 +50,6 @@ createServer(async (client) => {
   function render() {
     client.fillScreen(0);
 
-    console.log(textView);
-
     if (textView) {
       client.setTextColor(0xffff);
       client.setCursor(0, 10);
