@@ -19,13 +19,13 @@ using namespace std;
 // Instantiate with: (CS, DC, RST)
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 
-#define SD_CS    4
-#define SD_MOSI  6
-#define SD_MISO  5
-#define SD_SCK   7
+// #define SD_CS    4
+// #define SD_MOSI  6
+// #define SD_MISO  5
+// #define SD_SCK   7
 
-#include <SD.h>
-SPIClass spiSD(FSPI);
+// // #include <SD.h>
+// // SPIClass spiSD(FSPI);
 
 #include <Adafruit_NeoPixel.h>
 #define RGB_LED_PIN 8 // GPIO8 on ESP32
