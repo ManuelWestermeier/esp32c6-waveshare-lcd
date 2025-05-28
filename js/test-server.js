@@ -39,6 +39,7 @@ async function query(search, kl) {
   }
 }
 
+// query("hj", languages.German).then(console.log);
 createServer(async (client) => {
   let search = "";
   let output = "Nothing yet...";
