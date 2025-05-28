@@ -5,8 +5,9 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7789.h>
 
-#include <SD.h>
 #include <SPI.h>
+#include <SD.h>
+#include <LittleFS.h>
 
 #include "colors.hpp"
 #include "metadata.hpp"
@@ -105,8 +106,8 @@ struct Browser {
       if (nextSlash == -1) break;
 
       path = fullPath.substring(0, nextSlash);
-      if (!SD.exists(path)) {
-        if (!SD.mkdir(path)) {
+      if (!LittleFS.exists(path)) {
+        if (!LittleFS.mkdir(path)) {
           Serial.println("Failed to create directory: " + path);
           return;  // or handle error
         }
@@ -119,12 +120,12 @@ struct Browser {
     if (!fullPath.endsWith("/")) {
       int lastSlash = fullPath.lastIndexOf('/');
       String maybeDir = fullPath.substring(0, lastSlash);
-      if (!SD.exists(maybeDir)) {
-        SD.mkdir(maybeDir);  // or use the same check logic
+      if (!LittleFS.exists(maybeDir)) {
+        LittleFS.mkdir(maybeDir);  // or use the same check logic
       }
     } else {
-      if (!SD.exists(fullPath)) {
-        SD.mkdir(fullPath);
+      if (!LittleFS.exists(fullPath)) {
+        LittleFS.mkdir(fullPath);
       }
     }
   }
@@ -174,8 +175,8 @@ struct Browser {
 
         String value = "-1";
 
-        if (SD.exists(path)) {
-          File file = SD.open(path, "r");
+        if (LittleFS.exists(path)) {
+          File file = LittleFS.open(path, "r");
           value = file.readString();
           file.close();
         }
@@ -193,7 +194,7 @@ struct Browser {
         // Ensure full folder path exists
         ensurePathExists(path);
 
-        File file = SD.open(path, "w");
+        File file = LittleFS.open(path, "w");
         file.print(value);
         file.close();
       }
