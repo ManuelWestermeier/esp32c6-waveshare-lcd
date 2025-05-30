@@ -35,9 +35,10 @@ struct Browser {
 
   void Start() {
     appDomain = "hg2z.duckdns.org:25279";
-    appDomain = "192.168.178.33:25279";
+    // appDomain = "192.168.178.33:25279";
     // appDomain = "192.168.4.2:25279";
     // appDomain = "192.168.137.1:25279";
+    appDomain = "mw-141-os.onrender.com:25279";
     onPage = false;
   }
 

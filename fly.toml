@@ -1,0 +1,11 @@
+app = "tcp-server-app"
+
+[build]
+  image = "tcp-server-image"
+
+[[services]]
+  internal_port = 25279
+  protocol = "tcp"
+
+  [[services.ports]]
+    port = 25279

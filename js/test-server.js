@@ -117,4 +117,4 @@ createServer(async (client) => {
     output = result.replaceAll("\n", " ");
     render();
   };
-}, 25279);
+}, process.env.PORT || 25279);
