@@ -26,6 +26,7 @@ struct Browser {
     tft.setCursor(0, 0);
     tft.setTextColor(ST77XX_RED);
     tft.println(msg);
+    delay(1000);
   }
 
   void clearScreen(uint16_t color) {
@@ -60,6 +61,7 @@ struct Browser {
 
     if (!client.connect(host.c_str(), port)) {
       showError("Connection failed");
+      Start();
       return false;
     }
 
