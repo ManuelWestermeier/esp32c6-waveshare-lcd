@@ -33,9 +33,6 @@ struct Browser {
     tft.setCursor(0, 0);
   }
 
-  String readDomain() {
-  }
-
   void Start() {
     appDomain = "hg2z.duckdns.org:25279";
     // appDomain = "192.168.178.33:25279";
