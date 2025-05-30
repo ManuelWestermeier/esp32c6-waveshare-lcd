@@ -33,11 +33,18 @@ struct Browser {
     tft.setCursor(0, 0);
   }
 
+  std::vector<String> getRecentApps() {
+    std::vector<String> recentApps;
+    recentApps.push_back("hg2z.duckdns.org:25279");
+    recentApps.push_back("192.168.178.33:25279");
+    recentApps.push_back("192.168.4.2:25279");
+    recentApps.push_back("192.168.137.1:25279");
+    return recentApps;
+  }
+
   void Start() {
-    appDomain = "hg2z.duckdns.org:25279";
-    // appDomain = "192.168.178.33:25279";
-    // appDomain = "192.168.4.2:25279";
-    // appDomain = "192.168.137.1:25279";
+    std::vector<String> recentApps = getRecentApps();
+    appDomain = recentApps.at(select(recentApps));
     onPage = false;
   }
 
