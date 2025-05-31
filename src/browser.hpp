@@ -21,6 +21,8 @@ struct Browser {
   bool onPage = false;
   WiFiClient client;
 
+  void ensurePathExists(const String& fullPath);
+
   void showError(const char* msg) {
     tft.fillScreen(ST77XX_BLACK);
     tft.setCursor(0, 0);
@@ -36,29 +38,80 @@ struct Browser {
 
   std::vector<String> getRecentApps() {
     std::vector<String> recentApps;
+    recentApps.push_back("input new");
 
-    recentApps.push_back("hg2z.duckdns.org:25279");
-    
-    recentApps.push_back("hg2z.duckdns.org:25279");
-    
+    String path = String("/") + base64EncodeSafe(credentials.username) + "/browser/storage/apps.data";
+
+    if (LittleFS.exists(path)) {
+      File file = LittleFS.open(path, "r");
+
+      while (file.available()) {
+        String line = file.readStringUntil('\n');
+        line.trim();  // entfernt \r und Leerzeichen am Zeilenende
+        if (line.length() > 0) {
+          recentApps.push_back(line);
+        }
+      }
+
+      file.close();
+    } else {
+      recentApps.push_back("hg2z.duckdns.org");
+    }
+
     return recentApps;
   }
 
+  void addNewDomain() {
+    String newDomain = readText("  input domain (host:port)", "");
+    newDomain.trim();
+    onPage = false;
+
+    if (!Connect()) {
+      return;
+    }
+
+    String path = String("/") + base64EncodeSafe(credentials.username) + "/browser/storage/apps.data";
+
+    // Bestehenden Inhalt einlesen
+    String existingData = "";
+    if (LittleFS.exists(path)) {
+      File file = LittleFS.open(path, "r");
+      existingData = file.readString();  // liest gesamten Inhalt
+      file.close();
+    }
+
+    ensurePathExists(path);
+    // Datei überschreiben: neuer Eintrag zuerst
+    File file = LittleFS.open(path, "w");
+    file.println(newDomain);
+    file.print(existingData);  // kein println -> damit kein Extra-CRLF
+    file.close();
+  }
+
   void Start() {
+reselect:
     std::vector<String> recentApps = getRecentApps();
-    appDomain = recentApps.at(select(recentApps));
+    auto pos = select(recentApps);
+    if (pos == -1) {
+      goto reselect;
+    }
+    if (pos == 0) {
+      return addNewDomain();
+    }
+    appDomain = recentApps.at(pos);
     onPage = false;
   }
 
   bool Connect() {
     int sep = appDomain.indexOf(":");
-    if (sep == -1) {
-      showError("Invalid domain!");
-      return false;
-    }
 
-    String host = appDomain.substring(0, sep);
-    int port = appDomain.substring(sep + 1).toInt();
+    String host = appDomain;
+    int port = 25279;
+
+    if (sep != -1) {
+      host = appDomain.substring(0, sep);
+      port = appDomain.substring(sep + 1).toInt();
+    }
 
     if (!client.connect(host.c_str(), port)) {
       showError("Connection failed");
