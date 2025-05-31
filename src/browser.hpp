@@ -95,7 +95,7 @@ struct Browser {
   }
 
   void addNewDomain() {
-    String newDomain = readText("  input domain (host:port)", "");
+    String newDomain = readText(" nput domain (host:port)", "");
     newDomain.trim();
     onPage = false;
 
@@ -116,8 +116,14 @@ struct Browser {
     ensurePathExists(path);
     // Datei überschreiben: neuer Eintrag zuerst
     File file = LittleFS.open(path, "w");
+
+    if (existingData.isEmpty()) {
+      file.println("hg2z.duckdns.org");
+    }
+
     file.println(newDomain);
     file.print(existingData);  // kein println -> damit kein Extra-CRLF
+
     file.close();
   }
 
