@@ -21,7 +21,40 @@ struct Browser {
   bool onPage = false;
   WiFiClient client;
 
-  void ensurePathExists(const String& fullPath);
+  void ensurePathExists(const String& fullPath) {
+    if (!fullPath.startsWith("/")) return;
+
+    String path = "";
+    int fromIndex = 1;
+
+    while (true) {
+      int nextSlash = fullPath.indexOf('/', fromIndex);
+      if (nextSlash == -1) break;
+
+      path = fullPath.substring(0, nextSlash);
+      if (!LittleFS.exists(path)) {
+        if (!LittleFS.mkdir(path)) {
+          Serial.println("Failed to create directory: " + path);
+          return;  // or handle error
+        }
+      }
+
+      fromIndex = nextSlash + 1;
+    }
+
+    // Determine if the last segment is a directory
+    if (!fullPath.endsWith("/")) {
+      int lastSlash = fullPath.lastIndexOf('/');
+      String maybeDir = fullPath.substring(0, lastSlash);
+      if (!LittleFS.exists(maybeDir)) {
+        LittleFS.mkdir(maybeDir);  // or use the same check logic
+      }
+    } else {
+      if (!LittleFS.exists(fullPath)) {
+        LittleFS.mkdir(fullPath);
+      }
+    }
+  }
 
   void showError(const char* msg) {
     tft.fillScreen(ST77XX_BLACK);
@@ -152,41 +185,6 @@ reselect:
         break;
       default:
         break;
-    }
-  }
-
-  void ensurePathExists(const String& fullPath) {
-    if (!fullPath.startsWith("/")) return;
-
-    String path = "";
-    int fromIndex = 1;
-
-    while (true) {
-      int nextSlash = fullPath.indexOf('/', fromIndex);
-      if (nextSlash == -1) break;
-
-      path = fullPath.substring(0, nextSlash);
-      if (!LittleFS.exists(path)) {
-        if (!LittleFS.mkdir(path)) {
-          Serial.println("Failed to create directory: " + path);
-          return;  // or handle error
-        }
-      }
-
-      fromIndex = nextSlash + 1;
-    }
-
-    // Determine if the last segment is a directory
-    if (!fullPath.endsWith("/")) {
-      int lastSlash = fullPath.lastIndexOf('/');
-      String maybeDir = fullPath.substring(0, lastSlash);
-      if (!LittleFS.exists(maybeDir)) {
-        LittleFS.mkdir(maybeDir);  // or use the same check logic
-      }
-    } else {
-      if (!LittleFS.exists(fullPath)) {
-        LittleFS.mkdir(fullPath);
-      }
     }
   }
 
