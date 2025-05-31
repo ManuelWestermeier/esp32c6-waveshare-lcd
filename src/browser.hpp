@@ -184,9 +184,10 @@ reselect:
         client.println("dblclick");
         break;
       case Input::TripleClick:
-        if (ok(" Exit App"))
+        if (ok(" Exit App")) {
+          client.stop();
           Start();
-        else if (client.connected())
+        } else if (client.connected())
           client.println("rerender");
         break;
       default:
