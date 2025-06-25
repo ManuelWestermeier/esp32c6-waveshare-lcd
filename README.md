@@ -1,8 +1,8 @@
 # ESP32 C6 OS
 
-<video controls src="https://raw.githubusercontent.com/ManuelWestermeier/manuelwestermeier.github.io/refs/heads/main/esp32_141os.mp4" title="Title"></video>
+<video controls src="https://manuelwestermeier.github.io/esp32_141os.mp4" title="Title"></video>
 
-![Image](https://raw.githubusercontent.com/ManuelWestermeier/manuelwestermeier.github.io/refs/heads/main/esp32_141os.jpg)
+![Image](https://manuelwestermeier.github.io/esp32_141os.jpg)
 
 Ein Betriebssystem, das auf einem 1-Euro-ESP32 mit einem 1,41 Zoll
 großen Display und nur einem einzigen Knopf läuft. Es unterstützt
