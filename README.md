@@ -1,6 +1,6 @@
 # ESP32 C6 OS
 
-<video controls src="https://manuelwestermeier.github.io/esp32_141os.mp4" title="Title"></video>
+[ESP32 Intro OS Video](https://manuelwestermeier.github.io/esp32_141os.mp4)
 
 ![Image](https://manuelwestermeier.github.io/esp32_141os.jpg)
 
